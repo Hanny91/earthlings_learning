@@ -1,0 +1,253 @@
+{
+  "courses": {
+    "environmental-management-intensive": {
+      "id": "environmental-management-intensive",
+      "title": "IGCSE Environmental Management (Cambridge 0680)",
+      "category": "intensive",
+      "schedule": {
+        "times": ["Mondays 2pm", "Tuesdays 9am"],
+        "duration": "12 months - 46 lessons",
+        "lessonLength": "1 hour 30 minutes",
+        "firstLesson": "2nd / 3rd June 2025",
+        "lastLesson": "25th / 26th May 2026"
+      },
+      "pricing": {
+        "monthly": "£30/month",
+        "yearly": "£360/year"
+      },
+      "shortDescription": "Environmental management (EM) remains a strong starting point for learners beginning their journey into GCSE-level education and is an excellent way to round off other studies with a wide range of topics relevant to understanding 21st century challenges. This course is for exams up to May/June or October/November 2026 with the syllabus changing for exams from 2027 onwards!",
+      "fullDescription": {
+        "overview": "Environmental management (EM) remains a strong starting point for learners beginning their journey into GCSE-level education and is an excellent way to round off other studies with a wide range of topics relevant to understanding 21st century challenges. This course is for exams up to May/June or October/November 2026 with the syllabus changing for exams from 2027 onwards!",
+        "details": "Environmental Management (EM) is the study of environmental processes and systems and how to manage the influences of human activity on these systems. We consider the benefits humans get from 'nature', the impacts of humans on their environment and how to manage these impacts more sustainably.",
+        "suitability": "This syllabus covers a broad range of interesting topics from the natural world that are accessible and relevant to students and is therefore ideal for those starting their secondary-level education, those with an interest in the natural world or the sciences, or those wishing to complement other studies with a better understanding of global systems"
+      },
+      "features": [
+        "Weekly live classes",
+        "Marked Homework",
+        "Exam skills and mock exams",
+        "Small group sizes (maximum 12 students)"
+      ],
+      "actions": [
+        {
+          "text": "Enquire Now",
+          "url": "/pages/contact.html",
+          "type": "button"
+        },
+        {
+          "text": "Download Course Info",
+          "url": "/assets/docs/EMI25 Course Info.pdf",
+          "type": "download",
+          "filename": "EMI25 Course Info.pdf"
+        }
+      ]
+    },
+    "geography-intensive": {
+      "id": "geography-intensive",
+      "title": "IGCSE Geography (Edexcel 4GE1)",
+      "category": "intensive",
+      "schedule": {
+        "times": ["Tuesdays 11am"],
+        "duration": "12 months - 46 lessons",
+        "lessonLength": "1 hour 30 minutes",
+        "firstLesson": "3rd June 2025",
+        "lastLesson": "26th May 2026"
+      },
+      "pricing": {
+        "monthly": "£30/month",
+        "yearly": "£360/year"
+      },
+      "shortDescription": "The Edexcel Geography syllabus provides a comprehensive foundation in both physical and human geography, helping students understand the complex relationships between people, places and environments. Perfect for developing analytical skills and global awareness, this course combines theoretical knowledge with practical fieldwork experience. Students gain valuable insights into current global challenges while developing transferable skills in basic data analysis and research.",
+      "fullDescription": {
+        "overview": "The Edexcel Geography syllabus provides a comprehensive foundation in both physical and human geography, helping students understand the complex relationships between people, places and environments. Perfect for developing analytical skills and global awareness, this course combines theoretical knowledge with practical fieldwork experience. Students gain valuable insights into current global challenges while developing transferable skills in basic data analysis and research.",
+        "details": "Geography is the study of the Earth. This involves studying the physical processes that govern life on Earth but also studying human societies and their influence and reliance on Earth systems.",
+        "suitability": "The Edexcel syllabus helps students on that journey by focusing on five aspects of geography, developing the skills necessary to research, explain and analyse how geographical processes work and draw the conclusions between them."
+      },
+      "features": [
+        "Weekly live classes",
+        "Marked Homework",
+        "Exam skills and mock exams",
+        "Small group sizes (maximum 12 students)"
+      ],
+      "actions": [
+        {
+          "text": "Enquire Now",
+          "url": "/pages/contact.html",
+          "type": "button"
+        },
+        {
+          "text": "Download Course Info",
+          "url": "/assets/docs/IGCSE Geog Info 2025.pdf",
+          "type": "download",
+          "filename": "IGCSE Geog Info 2025.pdf"
+        }
+      ]
+    },
+    "geography-2year": {
+      "id": "geography-2year",
+      "title": "IGCSE Geography (Edexcel 4GE1)",
+      "category": "2year",
+      "schedule": {
+        "times": ["Mondays 3pm - 3.50pm"],
+        "duration": "Sept 25 to May 27",
+        "lessonLength": "50 minutes",
+        "firstLesson": "8th Sept 2025",
+        "lastLesson": "24th May 2027"
+      },
+      "pricing": {
+        "monthly": "£25/month",
+        "fullCourse": "£475 full course"
+      },
+      "shortDescription": "The Edexcel Geography syllabus provides a comprehensive foundation in both physical and human geography, helping students understand the complex relationships between people, places and environments. Perfect for developing analytical skills and global awareness, this course combines theoretical knowledge with practical fieldwork experience. Students gain valuable insights into current global challenges while developing transferable skills in basic data analysis and research.",
+      "fullDescription": {
+        "overview": "The Edexcel Geography syllabus provides a comprehensive foundation in both physical and human geography, helping students understand the complex relationships between people, places and environments. Perfect for developing analytical skills and global awareness, this course combines theoretical knowledge with practical fieldwork experience. Students gain valuable insights into current global challenges while developing transferable skills in basic data analysis and research.",
+        "details": "Geography is the study of the Earth. This involves studying the physical processes that govern life on Earth but also studying human societies and their influence and reliance on Earth systems.",
+        "suitability": "The Edexcel syllabus helps students on that journey by focusing on five aspects of geography, developing the skills necessary to research, explain and analyse how geographical processes work and draw the conclusions between them."
+      },
+      "features": [
+        "Weekly live classes",
+        "Marked Homework",
+        "Exam skills and mock exams",
+        "Small group sizes (maximum 12 students)"
+      ],
+      "actions": [
+        {
+          "text": "Enquire Now",
+          "url": "/pages/contact.html",
+          "type": "button"
+        },
+        {
+          "text": "Download Course Info",
+          "url": "/assets/docs/Geography 2yr Course Information.pdf",
+          "type": "download",
+          "filename": "Geog 2yr Course Info.pdf"
+        }
+      ]
+    },
+    "environmental-management-2year": {
+      "id": "environmental-management-2year",
+      "title": "IGCSE Environmental Management (Cambridge 0680)",
+      "category": "2year",
+      "schedule": {
+        "times": ["Thursdays 1pm - 1.50pm"],
+        "duration": "Sept 25 to May 27",
+        "lessonLength": "50 minutes",
+        "firstLesson": "11th Sept 2025",
+        "lastLesson": "27th May 2027"
+      },
+      "pricing": {
+        "monthly": "£25/month",
+        "fullCourse": "£475 full course"
+      },
+      "shortDescription": "Environmental management (EM) remains a strong starting point for learners beginning their journey into GCSE-level education and is an excellent way to round off other studies with a wide range of topics relevant to understanding 21st century challenges. This course teaches the new 2027-29 syllabus effective for examinations from Summer 2027 onwards.",
+      "fullDescription": {
+        "overview": "Environmental management (EM) remains a strong starting point for learners beginning their journey into GCSE-level education and is an excellent way to round off other studies with a wide range of topics relevant to understanding 21st century challenges. This course teaches the new 2027-29 syllabus effective for examinations from Summer 2027 onwards. Course includes fortnightly homework, exam skills and mock examinations. Also includes some work with graphs, simple maths and basic ecological fieldwork.",
+        "details": "Environmental Management (EM) is the study of environmental processes and systems and how to manage the influences of human activity on these systems. We consider the benefits humans get from 'nature', the impacts of humans on their environment and how to manage these impacts more sustainably.",
+        "suitability": "This syllabus covers a broad range of interesting topics from the natural world that are accessible and relevant to students and is therefore ideal for those starting their secondary-level education, those with an interest in the natural world or the sciences, or those wishing to complement other studies with a better understanding of global systems"
+      },
+      "features": [
+        "Weekly live classes",
+        "Marked Homework",
+        "Exam skills and mock exams",
+        "Small group sizes (maximum 12 students)"
+      ],
+      "actions": [
+        {
+          "text": "Enquire Now",
+          "url": "/pages/contact.html",
+          "type": "button"
+        },
+        {
+          "text": "Download Course Info",
+          "url": "/assets/docs/EM 2yr Course Information.pdf",
+          "type": "download",
+          "filename": "EM 2yr Course Info.pdf"
+        }
+      ]
+    },
+    "marine-science-2year": {
+      "id": "marine-science-2year",
+      "title": "IGCSE Marine Science (Cambridge 0697)",
+      "category": "2year",
+      "schedule": {
+        "times": ["Mondays 2pm - 2.50pm"],
+        "duration": "Sept 25 to May 27",
+        "lessonLength": "50 minutes",
+        "firstLesson": "8th Sept 2025",
+        "lastLesson": "24th May 2027"
+      },
+      "pricing": {
+        "monthly": "£25/month",
+        "fullCourse": "£475 full course"
+      },
+      "shortDescription": "The Marine Science IGCSE investigates the physical, chemical and biological processes that shape the oceans and their ecosystems. It is an ideal course for those with an interest in the marine environment, ecology and conservation. In this course we also look at human interaction with marine ecosystems, how we depend on them, and how humans may damage marine ecosystems.",
+      "fullDescription": {
+        "overview": "The Marine Science IGCSE investigates the physical, chemical and biological processes that shape the oceans and their ecosystems. It is an ideal course for those with an interest in the marine environment, ecology and conservation. In this course we also look at human interaction with marine ecosystems, how we depend on them, and how humans may damage marine ecosystems. This course involves practical investigations into the physical and chemical properties of oceans, examination of biological populations and ecological investigations into the communities found in coastal habitats.",
+        "details": "",
+        "suitability": ""
+      },
+      "features": [
+        "Weekly live classes",
+        "Marked Homework",
+        "Exam skills and mock exams",
+        "Guided preparation for practical and ecological investigations",
+        "Groupwork for data analysis and presentation methods",
+        "Small group sizes (maximum 12 students)"
+      ],
+      "actions": [
+        {
+          "text": "Enquire Now",
+          "url": "/pages/contact.html",
+          "type": "button"
+        },
+        {
+          "text": "Download Course Info",
+          "url": "/assets/docs/Marine Science 2yr Course Information.pdf",
+          "type": "download",
+          "filename": "MS 2yr Course Info.pdf"
+        }
+      ]
+    },
+    "environmental-science-alevel": {
+      "id": "environmental-science-alevel",
+      "title": "A-level Environmental Science (AQA -7447)",
+      "category": "alevel",
+      "schedule": {
+        "times": ["Thursdays 10am-11.40am"],
+        "duration": "Two-year course",
+        "lessonLength": "1 hour 40 minutes",
+        "firstLesson": "4th September 2025",
+        "lastLesson": "",
+        "additionalInfo": "First year: September 2025 - July 2026, Second year: September 2026 - May 2027"
+      },
+      "pricing": {
+        "monthly": "£60/month"
+      },
+      "shortDescription": "The Environmental Science A-level takes an understanding gained of issues studied in Environmental Management and other scientific disciplines related to global processes to a new level of scientific rigour and analysis. It is an ideal stepping stone for those wishing to gain employment in a wide variety of fields include land management, energy and mineral resource management, and ecology and conservation",
+      "fullDescription": {
+        "overview": "The Environmental Science (ES) A-level takes an understanding gained of issues studied in Environmental Management and other scientific disciplines related to global processes to a new level of scientific rigour and analysis. It is an ideal stepping stone for those wishing to gain employment in a wide variety of fields include land management, energy and mineral resource management, and ecology and conservation",
+        "details": "The ES syllabus builds on existing studies in disciplines such as Environmental Management, Geography or Marine Science. Some prior experience in these disciplines and some basic mathematics is expected. This course provides all of the content and assessment necessary to take the exam but as an A-level self-study is an increasingly important part of studied. Classes will deliver content, concept-check understanding and most importantly provide a forum for students to collaborate and share their knowledge. There are some practical requirements to this course and a mandatory fieldtrip with a registered provider is a requirement of many independent exam centres for sitting the exam, and a joint fieldtrip will be organised in collaboration with parents and students during the course",
+        "suitability": ""
+      },
+      "features": [
+        "Weekly live classes",
+        "Marked Homework",
+        "Exam skills and mock exams",
+        "Full student support",
+        "Small group size (maximum 10 students)"
+      ],
+      "actions": [
+        {
+          "text": "Enquire Now",
+          "url": "/pages/contact.html",
+          "type": "button"
+        },
+        {
+          "text": "Download Course Info",
+          "url": "/assets/docs/ES Course Information 2025.pdf",
+          "type": "download",
+          "filename": "A-level Environmental Science Info.pdf"
+        }
+      ]
+    }
+  }
+}
