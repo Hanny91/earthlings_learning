@@ -101,25 +101,19 @@ class CourseRenderer {
         }).join('');
     }
 
-        // Add structured data for SEO
+// Add structured data for SEO
     addCourseSchema(course) {
-        // Parse pricing information
+        // Parse pricing information - fix currency symbol parsing
         const monthlyPrice = course.pricing.monthly ? 
-            course.pricing.monthly.replace(/[£€$]/g, '').replace('/month', '') : null;
+            course.pricing.monthly.replace(/[£€$Â£]/g, '').replace('/month', '').trim() : null;
         const yearlyPrice = course.pricing.yearly ? 
-            course.pricing.yearly.replace(/[£€$]/g, '').replace('/year', '') : null;
+            course.pricing.yearly.replace(/[£€$Â£]/g, '').replace('/year', '').trim() : null;
         
         // Determine course level
         const educationalLevel = course.category === 'alevel' ? 
             'Post-Secondary Education' : 'Secondary Education';
-        
-        // Parse duration for ISO format
-        const duration = this.parseDurationToISO(course.schedule.duration);
-        
-        // Parse dates
-        const startDate = this.parseStartDate(course.schedule.firstLesson);
-        const endDate = this.parseEndDate(course.schedule.lastLesson);
 
+        // Build base schema
         const schema = {
             "@context": "https://schema.org",
             "@type": "Course",
@@ -133,58 +127,33 @@ class CourseRenderer {
                     "@type": "PostalAddress",
                     "addressLocality": "Redruth",
                     "addressRegion": "Cornwall",
-                    "addressCountry": "UK"
+                    "addressCountry": "GB"
                 }
             },
-            "courseMode": "Online",
+            "courseMode": "https://schema.org/OnlineOnly",
             "educationalLevel": educationalLevel,
-            "hasCourseInstance": {
-                "@type": "CourseInstance",
-                "courseMode": "Online",
-                "startDate": startDate,
-                "endDate": endDate,
-                "duration": duration,
-                "instructor": {
-                    "@type": "Person",
-                    "name": "Damian",
-                    "jobTitle": "IGCSE Earth Sciences Tutor"
-                }
+            "instructor": {
+                "@type": "Person",
+                "name": "Damian",
+                "jobTitle": "IGCSE Earth Sciences Tutor"
             }
         };
 
-        // Add pricing if available
-        if (monthlyPrice || yearlyPrice) {
-            schema.offers = [];
-            
-            if (monthlyPrice) {
-                schema.offers.push({
-                    "@type": "Offer",
-                    "price": monthlyPrice,
-                    "priceCurrency": "GBP",
-                    "priceSpecification": {
-                        "@type": "UnitPriceSpecification",
-                        "price": monthlyPrice,
-                        "priceCurrency": "GBP",
-                        "unitText": "monthly"
-                    },
-                    "availability": "https://schema.org/InStock"
-                });
-            }
-            
-            if (yearlyPrice) {
-                schema.offers.push({
-                    "@type": "Offer",
-                    "price": yearlyPrice,
-                    "priceCurrency": "GBP",
-                    "priceSpecification": {
-                        "@type": "UnitPriceSpecification",
-                        "price": yearlyPrice,
-                        "priceCurrency": "GBP",
-                        "unitText": "yearly"
-                    },
-                    "availability": "https://schema.org/InStock"
-                });
-            }
+        // Add pricing if available - simplified structure
+        if (monthlyPrice) {
+            schema.offers = {
+                "@type": "Offer",
+                "price": monthlyPrice,
+                "priceCurrency": "GBP",
+                "availability": "https://schema.org/InStock"
+            };
+        } else if (yearlyPrice) {
+            schema.offers = {
+                "@type": "Offer", 
+                "price": yearlyPrice,
+                "priceCurrency": "GBP",
+                "availability": "https://schema.org/InStock"
+            };
         }
 
         // Add subject area based on course title
@@ -196,9 +165,19 @@ class CourseRenderer {
             schema.about = "Marine Science";
         }
 
+        // Create unique ID to avoid duplicate schemas
+        const schemaId = `course-schema-${course.id}`;
+        
+        // Remove existing schema for this course if it exists
+        const existingSchema = document.getElementById(schemaId);
+        if (existingSchema) {
+            existingSchema.remove();
+        }
+
         // Create and inject the schema script
         const script = document.createElement('script');
         script.type = 'application/ld+json';
+        script.id = schemaId;
         script.textContent = JSON.stringify(schema, null, 2);
         document.head.appendChild(script);
     }
