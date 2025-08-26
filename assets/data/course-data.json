@@ -246,6 +246,11 @@
           "url": "/assets/docs/ES Course Information 2025.pdf",
           "type": "download",
           "filename": "A-level Environmental Science Info.pdf"
+        },
+        {
+          "text": "View Full Course Details",
+          "url": "/pages/environmental-science-alevel.html",
+          "type": "button"
         }
       ]
     }

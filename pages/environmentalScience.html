@@ -275,7 +275,7 @@
             </div>
         </section>
 
-        <!-- Actions -->
+       <!-- Actions -->
         <section class="section">
             <h2 class="section__title">Ready to Start?</h2>
             <div class="grid grid--2-col">
@@ -284,9 +284,103 @@
                         <h3 class="card-title">Get More Information</h3>
                         <p>Download the complete course information PDF for full details about the A-Level Environmental Science program.</p>
                         <a href="/assets/docs/ES Course Information 2025.pdf" class="button" download="A-level Environmental Science Info.pdf">
-                            Course Information</a>
+                            Download Course Info
+                        </a>
                     </div>
                 </div>
-            </section>
-        </main>
-    </body>
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">Ready to Enroll?</h3>
+                        <p>Have questions or ready to secure your place? Get in touch to discuss the course and enrollment process.</p>
+                        <a href="/pages/contact.html" class="button">
+                            Enquire Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Documents -->
+        <section class="section">
+            <h2 class="section__title">Related Documents</h2>
+            <div class="grid grid--3-col">
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">Terms of Service</h3>
+                        <p>What you can expect from Earthlings Learning</p>
+                        <a href="/assets/docs/Earthlings IGCSE Terms of Service 2025.pdf" class="button button--small" download="Earthlings Learning Terms of Service.pdf">
+                            Download
+                        </a>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">Registration Form</h3>
+                        <p>Complete this form to register for the course</p>
+                        <a href="/assets/docs/Earthlings IGCSE Student Registration.docx" class="button button--small" download="Earthlings Student Registration.docx">
+                            Download
+                        </a>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">Homework Guidance</h3>
+                        <p>Tips on work outside the classes</p>
+                        <a href="/assets/docs/EL Homework Guidance 2025.pdf" class="button button--small" download="Earthlings Learning Homework Guidance.pdf">
+                            Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Course",
+        "name": "A-level Environmental Science (AQA 7447)",
+        "description": "Two-year A-level Environmental Science course covering Earth processes, human environmental interactions, ecology and conservation. Includes fieldwork and practical investigations.",
+        "provider": {
+            "@type": "EducationalOrganization",
+            "name": "Earthlings Learning",
+            "url": "https://www.earthlingslearning.co.uk",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Redruth",
+                "addressRegion": "Cornwall",
+                "addressCountry": "GB"
+            }
+        },
+        "courseMode": "https://schema.org/OnlineOnly",
+        "educationalLevel": "Post-Secondary Education",
+        "instructor": {
+            "@type": "Person",
+            "name": "Damian",
+            "jobTitle": "Environmental Science Tutor",
+            "description": "MSc Environmental Management, member of British Ecological Society"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "60",
+            "priceCurrency": "GBP",
+            "availability": "https://schema.org/InStock",
+            "validFrom": "2025-09-04"
+        },
+        "about": "Environmental Science",
+        "coursePrerequisites": "IGCSE level qualifications in sciences such as Biology, Chemistry, Environmental Management, Geography, or Marine Science",
+        "timeRequired": "P2Y",
+        "startDate": "2025-09-04",
+        "endDate": "2027-05-31",
+        "courseSchedule": {
+            "@type": "Schedule",
+            "repeatFrequency": "P1W",
+            "byDay": "Thursday",
+            "startTime": "10:00",
+            "endTime": "11:40"
+        }
+    }
+    </script>
+</body>
+</html>
