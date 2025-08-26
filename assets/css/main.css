@@ -123,7 +123,8 @@ li:last-child {
 }
 
 .main-nav a:hover {
-    color: #fff8e7;
+    color: #f4f1e8;
+    text-decoration: underline;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -132,7 +133,18 @@ li:last-child {
     color: #fff8e7;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
+/* Content Links */
+.container a:not(.button):not(.main-nav a) {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s;
+}
 
+.container a:not(.button):not(.main-nav a):hover {
+    color: #7b6649;
+    text-decoration: underline;
+}
 .logo img {
     height: 90px;
     width: auto;
