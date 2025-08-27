@@ -135,7 +135,6 @@ li:last-child {
 
 .content-media {
     flex: 0 0 300px;
-    position: sticky;
     top: 8rem;
 }
 
@@ -155,6 +154,7 @@ li:last-child {
 .content-media img {
     width: 100%;
     height: auto;
+    display: block;
     border-radius: var(--radius-md);
     object-fit: cover;
     box-shadow: var(--shadow-large);
@@ -178,13 +178,17 @@ li:last-child {
     
     .flex-content,
     .flex-content--reverse {
+        display: -webkit-flex; /* Safari/Chrome prefix */
+        display: flex;
         flex-direction: column;
+        gap: var(--spacing-xl);
+        align-items: flex-start;
     }
     
     .content-media {
-        flex: none;
-        position: static;
-        max-width: 100%;
+        flex: 0 0 300px;
+        top: 8rem;
+        align-self: flex-start; /* Ensure proper alignment */
     }
 }
 
