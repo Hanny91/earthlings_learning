@@ -1,0 +1,120 @@
+/* Page-specific styles */
+
+/* Partners Specific */
+.org-logo {
+    flex: 0 0 300px;
+}
+
+.org-logo img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-medium);
+}
+
+.organization-card {
+    display: flex;
+    gap: var(--spacing-xl);
+}
+
+/* News Specific */
+.news-meta {
+    margin-bottom: var(--spacing-md);
+}
+
+.news-date {
+    color: var(--color-primary-light);
+    font-weight: bold;
+    margin-bottom: var(--spacing-sm);
+    font-family: var(--font-primary);
+}
+
+.news-title {
+    font-size: 1.5rem;
+    color: var(--color-primary-dark);
+    margin-bottom: var(--spacing-md);
+    font-family: var(--font-primary);
+    font-weight: bold;
+}
+
+/* About Specific */
+.images-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.images-container img {
+    width: 80%;
+    height: auto;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    box-shadow: var(--shadow-large);
+    border: var(--border-medium);
+}
+
+.text-content {
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+.text-content p {
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Contact Specific */
+.contact-method {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.contact-method p {
+    color: var(--color-primary-medium);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+}
+
+.contact-link {
+    color: var(--color-primary-light);
+    text-decoration: none;
+    font-weight: bold;
+    border-bottom: var(--border-accent);
+    transition: all 0.3s ease;
+}
+
+.contact-link:hover {
+    color: var(--color-primary-dark);
+    border-bottom-color: var(--color-primary-light);
+}
+
+.response-time {
+    background: var(--gradient-card-alt);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-sm);
+    margin-top: var(--spacing-xl);
+    border: var(--border-light);
+    box-shadow: 0 2px 6px rgba(75, 63, 42, 0.1);
+}
+
+.response-time ul {
+    list-style: none;
+    color: var(--color-primary-medium);
+}
+
+.response-time li {
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.7;
+}
+
+/* Responsive for Partners */
+@media (max-width: 48rem) { /* 768px */
+    .organization-card {
+        flex-direction: column;
+    }
+    
+    .org-logo {
+        flex: 0 0 auto;
+        max-width: 100%;
+        margin-bottom: var(--spacing-lg);
+    }
+}

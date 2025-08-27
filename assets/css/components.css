@@ -1,0 +1,324 @@
+/* Components - Reusable UI Elements */
+
+/* Navigation */
+.main-nav {
+    position: fixed;
+    width: 100%;
+    padding: var(--spacing-md);
+    background: var(--gradient-nav);
+    background-attachment: fixed;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: var(--z-nav);
+    box-shadow: var(--shadow-nav);
+    border-bottom: var(--border-medium);
+}
+
+.main-nav::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--hemp-texture-nav);
+    pointer-events: none;
+}
+
+.main-nav ul {
+    display: flex;
+    list-style: none;
+    gap: var(--spacing-xl);
+    margin-right: var(--spacing-xl);
+    font-size: 1.25rem;
+    position: relative;
+    z-index: 1;
+}
+
+.main-nav a {
+    text-decoration: none;
+    color: var(--color-cream);
+    text-shadow: var(--text-shadow-dark);
+    transition: color 0.3s ease;
+    font-weight: 500;
+}
+
+.main-nav a:hover {
+    color: var(--color-cream);
+    text-decoration: underline;
+    text-shadow: var(--text-shadow-heavy);
+}
+
+.main-nav a.active {
+    font-weight: bold;
+    color: #fff8e7;
+    text-shadow: var(--text-shadow-heavy);
+}
+
+.logo img {
+    height: 90px;
+    width: auto;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Buttons */
+.button {
+    display: inline-block;
+    padding: 0.75rem 1.75rem;
+    background: var(--gradient-button);
+    color: var(--color-cream);
+    text-decoration: none;
+    border-radius: var(--radius-xl);
+    font-weight: bold;
+    border: var(--border-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: var(--spacing-sm);
+    text-shadow: var(--text-shadow-dark);
+    box-shadow: 0 3px 6px rgba(75, 63, 42, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.button:hover::before {
+    left: 100%;
+}
+
+.button:hover {
+    background: var(--gradient-button-hover);
+    box-shadow: var(--shadow-heavy);
+    transform: translateY(-1px);
+}
+
+.button--large {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+}
+
+.button--small {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.875rem;
+}
+
+/* Cards */
+.card {
+    background: var(--gradient-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-large);
+    padding: var(--spacing-lg);
+    border: var(--border-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--hemp-texture-card);
+    pointer-events: none;
+}
+
+.card-content {
+    padding: var(--spacing-sm);
+    position: relative;
+    z-index: var(--z-content);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-primary-dark);
+    font-family: var(--font-primary);
+    font-weight: bold;
+}
+
+.card-text {
+    color: var(--color-primary-medium);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Tags */
+.tag {
+    display: inline-block;
+    padding: 0.4rem 0.9rem;
+    background: var(--gradient-tag);
+    color: var(--color-cream);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    text-shadow: var(--shadow-small);
+    box-shadow: var(--shadow-small);
+    font-weight: 500;
+}
+
+.tags-container {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-md) 0;
+}
+
+/* Hero Section */
+.hero {
+    height: 100vh;
+    background: var(--gradient-hero-overlay), url('../images/goat.jpg');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-xl);
+    position: relative;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--hemp-texture-hero);
+    pointer-events: none;
+}
+
+.hero-content {
+    color: var(--color-cream);
+    text-shadow: var(--text-shadow-hero);
+    position: relative;
+    z-index: var(--z-content);
+}
+
+.hero h1 {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+    font-family: var(--font-primary);
+}
+
+.hero h2 {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-xl);
+    font-weight: 400;
+}
+
+/* Read More Functionality */
+.content-wrapper {
+    position: relative;
+}
+
+.short-content {
+    margin-bottom: var(--spacing-md);
+}
+
+.full-content {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Course Stats */
+.course-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: 1.2rem;
+    background: var(--gradient-card-alt);
+    border-radius: var(--radius-sm);
+    border: var(--border-light);
+    box-shadow: inset 0 1px 3px rgba(75, 63, 42, 0.1);
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--color-primary-light);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: var(--color-primary-dark);
+    font-size: 0.95rem;
+}
+
+/* Course headers */
+.course-header h3 {
+    font-family: var(--font-primary);
+    color: var(--color-primary-dark);
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Generic image styling */
+img.cert-img {
+    width: 100%; 
+    object-fit: contain; 
+    display: block;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-medium);
+}
+
+/* Responsive Navigation */
+@media (max-width: 48rem) { /* 768px */
+    .main-nav {
+        padding: 0.75rem;
+    }
+    
+    .main-nav ul {
+        gap: var(--spacing-md);
+        margin-right: var(--spacing-md);
+        font-size: 0.9rem;
+    }
+    
+    .logo img {
+        height: 2.5rem;
+    }
+
+    .hero h1 {
+        font-size: 3rem;
+    }
+
+    .hero h2 {
+        font-size: 1.5rem;
+    }
+    
+    .course-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 36rem) { /* 576px */
+    .course-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero h2 {
+        font-size: 1.2rem;
+    }
+}

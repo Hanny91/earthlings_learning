@@ -1,0 +1,104 @@
+/* CSS Variables - All repeated values centralized */
+:root {
+  /* Brand Colors */
+  --color-primary-dark: #4a3f2a;
+  --color-primary-medium: #5d4e35;
+  --color-primary-light: #7b6649;
+  --color-accent-primary: #8b7355;
+  --color-accent-secondary: #a0845f;
+  --color-accent-dark: #6d5a42;
+  
+  /* Background Colors */
+  --color-background: #f4f1e8;
+  --color-background-alt: #f0ebe0;
+  --color-background-tertiary: #e8e2d4;
+  --color-cream: #fff8e7;
+  --color-cream-alt: #f8f4ed;
+  
+  /* Border Colors */
+  --color-border: #d4c4a8;
+  --color-border-dark: #5d4e35;
+  
+  /* Hemp texture colors */
+  --hemp-brown-1: rgba(139, 115, 85, 0.03);
+  --hemp-brown-2: rgba(160, 132, 98, 0.03);
+  --hemp-brown-3: rgba(123, 102, 73, 0.03);
+  --hemp-line: rgba(139, 115, 85, 0.01);
+  
+  /* Shadows */
+  --shadow-light: 0 1px 0 rgba(255, 255, 255, 0.3);
+  --shadow-small: 0 2px 4px rgba(75, 63, 42, 0.2);
+  --shadow-medium: 0 2px 8px rgba(75, 63, 42, 0.15);
+  --shadow-large: 0 4px 12px rgba(75, 63, 42, 0.15);
+  --shadow-heavy: 0 5px 12px rgba(75, 63, 42, 0.4);
+  --shadow-nav: 0 2px 8px rgba(75, 63, 42, 0.2);
+  --shadow-text-light: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  --shadow-text-dark: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-text-heavy: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-hero: 2px 2px 4px rgba(75, 63, 42, 0.8);
+  
+  /* Borders */
+  --border-light: 1px solid var(--color-border);
+  --border-medium: 2px solid var(--color-border);
+  --border-dark: 2px solid var(--color-border-dark);
+  --border-accent: 2px solid var(--color-accent-secondary);
+  
+  /* Gradients */
+  --gradient-background: linear-gradient(135deg, #f4f1e8 0%, #e8e2d4 25%, #f0ebe0 50%, #e6ddc7 75%, #f2eddf 100%);
+  --gradient-nav: linear-gradient(135deg, #8b7355 0%, #a0845f 50%, #7b6649 100%);
+  --gradient-button: linear-gradient(135deg, #7b6649 0%, #8b7355 50%, #6d5a42 100%);
+  --gradient-button-hover: linear-gradient(135deg, #8b7355 0%, #a0845f 50%, #7b6649 100%);
+  --gradient-card: linear-gradient(135deg, #f8f4ed 0%, #f0ebe0 50%, #e8e2d4 100%);
+  --gradient-card-alt: linear-gradient(135deg, #f0ebe0 0%, #e8e2d4 100%);
+  --gradient-tag: linear-gradient(135deg, #8b7355 0%, #a0845f 100%);
+  --gradient-hero-overlay: linear-gradient(rgba(75, 63, 42, 0.3), rgba(93, 78, 53, 0.4));
+  
+  /* Hemp Paper Texture Patterns */
+  --hemp-texture: 
+    radial-gradient(circle at 20% 50%, var(--hemp-brown-1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, var(--hemp-brown-2) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, var(--hemp-brown-3) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, var(--hemp-line) 2px, var(--hemp-line) 4px);
+  
+  --hemp-texture-nav:
+    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255, 255, 255, 0.05) 3px, rgba(255, 255, 255, 0.05) 6px);
+  
+  --hemp-texture-card:
+    radial-gradient(circle at 15% 25%, var(--hemp-brown-1) 0%, transparent 40%),
+    radial-gradient(circle at 85% 75%, var(--hemp-brown-3) 0%, transparent 40%);
+  
+  --hemp-texture-hero:
+    radial-gradient(circle at 30% 70%, rgba(139, 115, 85, 0.1) 0%, transparent 60%);
+  
+  /* Typography */
+  --font-primary: 'Georgia', 'Times New Roman', serif;
+  --text-shadow-light: var(--shadow-text-light);
+  --text-shadow-dark: var(--shadow-text-dark);
+  --text-shadow-heavy: var(--shadow-text-heavy);
+  --text-shadow-hero: var(--shadow-hero);
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 2.5rem;
+  --spacing-3xl: 4rem;
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 25px;
+  
+  /* Breakpoints */
+  --breakpoint-md: 48rem; /* 768px */
+  --breakpoint-sm: 36rem; /* 576px */
+  
+  /* Z-index */
+  --z-nav: 1000;
+  --z-overlay: 100;
+  --z-content: 1;
+  --z-background: -1;
+}
