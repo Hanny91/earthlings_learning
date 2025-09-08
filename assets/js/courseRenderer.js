@@ -85,13 +85,24 @@ class CourseRenderer {
             }
         ];
 
-        return stats.map(stat => `
-            <div class="stat">
-                <span class="stat-label">${stat.label}</span>
-                ${stat.values.map(value => `<span class="stat-value">${value}</span>`).join('')}
-                ${stat.values.length > 1 && stat.label === "Lesson Times" ? '<span class="stat-value">OR</span>' : ''}
-            </div>
-        `).join('');
+        return stats.map(stat => {
+            // For "Lesson Times", join values with " OR " between them
+            if (stat.label === "Lesson Times" && stat.values.length > 1) {
+                return `
+                    <div class="stat">
+                        <span class="stat-label">${stat.label}</span>
+                        <span class="stat-value">${stat.values.join(' <span class="stat-or">OR</span> ')}</span>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="stat">
+                        <span class="stat-label">${stat.label}</span>
+                        ${stat.values.map(value => `<span class="stat-value">${value}</span>`).join('')}
+                    </div>
+                `;
+            }
+        }).join('');
     }
 
     generateActionsHTML(actions) {
