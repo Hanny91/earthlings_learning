@@ -207,6 +207,47 @@
         }
       ]
     },
+    "em-revision": {
+      "id": "em-revision",
+      "title": "IGCSE Environmental Management (Cambridge 0680) Revision Course",
+      "category": "revision",
+      "schedule": {
+        "times": ["Mondays 5pm - 6pm"],
+        "duration": "March 16th 2026 to May 20th 2026",
+        "lessonLength": "One hour",
+        "firstLesson": "16th March 2026",
+        "lastLesson": "20th May 2026"
+      },
+      "pricing": {
+        "monthly": "£50 for full course",
+       "fullCourse": ""
+      },
+      "shortDescription": "The EM Revision course is designed for students sitting the Cambridge 0680 Environmental Management IGCSE exam to refresh and assess their skills.",
+      "fullDescription": {
+        "overview": "The EM Revision course is designed for students sitting the Cambridge 0680 Environmental Management IGCSE exam to refresh and assess their skills. It covers all key topics in the syllabus and provides targeted revision strategies to help students perform well in their exams.",
+        "details": "Weekly classes covering each of the nine modules, with a marked homework for each class. Final class focusses on exam skills, includingey words and command words",
+        "suitability": "Suitable for students who have already studied independently or with other tutors and are looking for marked assessment and a structured revision course to prepare for their exams. Not suitable as a complete tuition option for the course"
+      },
+      "features": [
+        "Weekly live classes",
+        "Marked Homework",
+        "Exam skills",
+        "Small group sizes (maximum 20 students)"
+      ],
+      "actions": [
+        {
+          "text": "Enquire Now",
+          "url": "/pages/contact.html",
+          "type": "button"
+        },
+        {
+          "text": "Download Course Info",
+          "url": "/assets/docs/em revision course information 2026.pdf",
+          "type": "download",
+          "filename": "EM Revision Course Info.pdf"
+        }
+      ]
+    },
     "environmental-science-alevel": {
       "id": "environmental-science-alevel",
       "title": "A-level Environmental Science (AQA -7447)",
