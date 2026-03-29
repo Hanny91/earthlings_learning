@@ -29,10 +29,14 @@ class CourseRenderer {
     }
 
     generateCourseHTML(course) {
+        const titleHTML = course.detailsPageUrl 
+            ? `<h3><a href="${course.detailsPageUrl}" class="course-title-link">${course.title}</a></h3>`
+            : `<h3>${course.title}</h3>`;
+        
         return `
             <article class="course-card card">
                 <div class="course-header">
-                    <h3>${course.title}</h3>
+                    ${titleHTML}
                 </div>
                 <div class="course-stats">
                     ${this.generateStatsHTML(course.schedule, course.pricing)}
@@ -73,7 +77,7 @@ class CourseRenderer {
             },
             {
                 label: "Price",
-                values: [pricing.monthly, pricing.yearly]
+                values: [pricing.monthly, pricing.yearly || pricing.fullCourse].filter(Boolean)
             },
             {
                 label: "First Lesson",
@@ -108,7 +112,9 @@ class CourseRenderer {
     generateActionsHTML(actions) {
         return actions.map(action => {
             const downloadAttr = action.type === 'download' ? `download="${action.filename}"` : '';
-            return `<a href="${action.url}" class="button" ${downloadAttr}>${action.text}</a>`;
+            const isExternal = action.url.startsWith('http');
+            const externalAttr = isExternal ? `target="_blank" rel="noopener"` : '';
+            return `<a href="${action.url}" class="button" ${downloadAttr} ${externalAttr}>${action.text}</a>`;
         }).join('');
     }
 

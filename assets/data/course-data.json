@@ -3,13 +3,14 @@
     "environmental-management-intensive": {
       "id": "environmental-management-intensive",
       "title": "IGCSE Environmental Management (Cambridge 0680)",
+      "detailsPageUrl": "/pages/environmentalManagement.html",
       "category": "intensive",
       "schedule": {
-        "times": ["Mondays 12pm", "Tuesdays 10am"],
+        "times": ["Mondays 10am"],
         "duration": "12 months - 46 lessons",
         "lessonLength": "1 hour 30 minutes",
-        "firstLesson": "2nd / 3rd June 2025",
-        "lastLesson": "25th / 26th May 2026"
+        "firstLesson": "15th June 2026",
+        "lastLesson": "31st May 2026"
       },
       "pricing": {
         "monthly": "£30/month",
@@ -29,28 +30,29 @@
       ],
       "actions": [
         {
-          "text": "Enquire Now",
-          "url": "/pages/contact.html",
+          "text": "Register",
+          "url": "https://earthlingslearning.podia.com/environmental-management-intensive-course-2026",
           "type": "button"
         },
         {
           "text": "Download Course Info",
-          "url": "/assets/docs/EMI25 Course Info.pdf",
+          "url": "/assets/docs/EM26 Course Information.pdf",
           "type": "download",
-          "filename": "EMI25 Course Info.pdf"
+          "filename": "EM26 Course Information.pdf"
         }
       ]
     },
     "geography-intensive": {
       "id": "geography-intensive",
       "title": "IGCSE Geography (Edexcel 4GE1)",
+      "detailsPageUrl": "/pages/geography.html",
       "category": "intensive",
       "schedule": {
-        "times": ["Tuesdays 11am"],
+        "times": ["Mondays 12am"],
         "duration": "12 months - 46 lessons",
         "lessonLength": "1 hour 30 minutes",
-        "firstLesson": "3rd June 2025",
-        "lastLesson": "26th May 2026"
+        "firstLesson": "15th June 2026",
+        "lastLesson": "31st May 2026"
       },
       "pricing": {
         "monthly": "£30/month",
@@ -70,15 +72,15 @@
       ],
       "actions": [
         {
-          "text": "Enquire Now",
-          "url": "/pages/contact.html",
+          "text": "Register",
+          "url": "https://earthlingslearning.podia.com/igcse-geography-intensive-course-2026",
           "type": "button"
         },
         {
           "text": "Download Course Info",
-          "url": "/assets/docs/IGCSE Geog Info 2025.pdf",
+          "url": "/assets/docs/IGCSE Geog Course Information 2026.pdf",
           "type": "download",
-          "filename": "IGCSE Geog Info 2025.pdf"
+          "filename": "IGCSE Geog Course Information.pdf"
         }
       ]
     },
