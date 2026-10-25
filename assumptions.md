@@ -7,7 +7,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 ## Neon setup
 
 - [ ] **Data API is enabled** on the database, so `auth.user_id()` and the `anonymous` / `authenticated` roles exist. `auth.user_id()` is confirmed, because migration `001` applied; the roles are confirmed once `003` applies.
-- [ ] **The Data API roles can call `auth.user_id()`.** First test failed with "permission denied for schema auth"; migration `006` grants `usage` on schema `auth` and `execute` on `auth.user_id()` to `anonymous` and `authenticated`. If the database owner isn't allowed to grant those, `006` fails and the fallback is a wrapper function in `app_private`.
+- [ ] **The caller's ID reaches the security rules.** The Data API roles can't use Neon's `auth` schema, and `006`'s grants were ignored ("no privileges were granted"). Migration `007` adds `app_private.current_user_id()`, a SECURITY DEFINER wrapper around `auth.user_id()`, and switches the column default, policies and `pins_in_bbox` to it. To check: pins load signed in and out, a new pin's popup shows Edit/Delete for its creator, and not for anyone else.
 - [ ] **Data API trusts Neon Auth tokens**, so a signed-in request runs as `authenticated` with `auth.user_id()` set to the user's ID.
 - [x] **Neon Auth is enabled with the organization plugin** before the first migration run. Migration `002` reads its tables, and Postgres checks they exist when it creates the functions.
 - [ ] **`https://earthlingslearning.co.uk` is in Neon Auth's trusted domains.**
