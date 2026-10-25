@@ -7,7 +7,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 ## Neon setup
 
 - [ ] **Data API is enabled** on the database, so `auth.user_id()` and the `anonymous` / `authenticated` roles exist. `auth.user_id()` is confirmed, because migration `001` applied; the roles are confirmed once `003` applies.
-- [ ] **The caller's ID reaches the security rules.** The Data API roles can't use Neon's `auth` schema, and `006`'s grants were ignored ("no privileges were granted"). Migration `007` adds `app_private.current_user_id()`, a SECURITY DEFINER wrapper around `auth.user_id()`, and switches the column default, policies and `pins_in_bbox` to it. To check: pins load signed in and out, a new pin's popup shows Edit/Delete for its creator, and not for anyone else.
+- [x] **The caller's ID reaches the security rules.** Confirmed: pins load signed in and out after `007`. The Data API roles can't use Neon's `auth` schema, and `006`'s grants were ignored ("no privileges were granted"). Migration `007` adds `app_private.current_user_id()`, a SECURITY DEFINER wrapper around `auth.user_id()`, and switches the column default, policies and `pins_in_bbox` to it. To check: pins load signed in and out, a new pin's popup shows Edit/Delete for its creator, and not for anyone else.
 - [ ] **Data API trusts Neon Auth tokens**, so a signed-in request runs as `authenticated` with `auth.user_id()` set to the user's ID.
 - [x] **Neon Auth is enabled with the organization plugin** before the first migration run. Migration `002` reads its tables, and Postgres checks they exist when it creates the functions.
 - [ ] **`https://earthlingslearning.co.uk` is in Neon Auth's trusted domains.**
@@ -57,7 +57,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 - [ ] **The Thunderforest Landscape URL and key parameter are correct**: `https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}{r}.png?apikey=…`. Also check whether the key should be restricted to `earthlingslearning.co.uk` in the Thunderforest dashboard.
 - [ ] **The OpenStreetMap fallback is acceptable for development only.** OSM's tile policy doesn't allow heavy production use, so set `VITE_THUNDERFOREST_KEY` before going live.
-- [ ] **Default view** (centre 54.5, -3, zoom 6, showing the whole UK) is where you want the map to open.
+- [ ] **Default view** (centre 50.4, -4.9, zoom 9, showing Cornwall) frames the county the way you want.
 - [ ] **Overlay layers are still to do.** Soil parent material/hydrogeology, rivers and MAGIC have empty panes reserved in `layers.ts`; each needs a WMS URL and layer name.
 
 ## UI (`map-app/src/components/`)

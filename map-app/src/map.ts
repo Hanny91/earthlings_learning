@@ -16,8 +16,6 @@ const LOAD_DELAY_MS = 300;
 export interface SurveyMapOptions {
   /** Called when the map background is clicked, e.g. to start adding a pin. */
   onMapClick?: (latlng: L.LatLng) => void;
-  /** Builds the popup shown when a pin is clicked. */
-  renderPopup?: (pin: Pin) => HTMLElement | string;
   /** Called when loading pins fails. */
   onLoadError?: (error: Error) => void;
 }
@@ -36,6 +34,7 @@ export class SurveyMap {
   private pins: Pin[] = [];
   private pinsById = new Map<number, Pin>();
   private readonly markers = new Map<number, L.CircleMarker>();
+  private readonly popupPinIds = new WeakMap<L.Popup, number>();
   // Every organisation seen so far, so filter entries don't vanish as the view moves.
   private readonly orgNames = new Map<string, string>();
   private readonly hidden = new Set<string>();
@@ -43,7 +42,8 @@ export class SurveyMap {
   private inFlight: AbortController | undefined;
 
   constructor(container: HTMLElement, private readonly options: SurveyMapOptions = {}) {
-    this.map = L.map(container, { center: [54.5, -3], zoom: 6 });
+    // Opens on Cornwall.
+    this.map = L.map(container, { center: [50.4, -4.9], zoom: 9 });
     createOverlayPanes(this.map);
     createBaseLayer().addTo(this.map);
     this.pinLayer.addTo(this.map);
@@ -98,6 +98,15 @@ export class SurveyMap {
     this.loadTimer = window.setTimeout(() => void this.reload(), LOAD_DELAY_MS);
   }
 
+  /**
+   * The pin a popup belongs to, with its latest data, or undefined for other
+   * popups. Its content element (popup.getContent()) is where to render it.
+   */
+  pinForPopup(popup: L.Popup): Pin | undefined {
+    const id = this.popupPinIds.get(popup);
+    return id === undefined ? undefined : this.pinsById.get(id);
+  }
+
   /** Stops loading and removes the map, e.g. when its React component unmounts. */
   destroy(): void {
     window.clearTimeout(this.loadTimer);
@@ -133,9 +142,11 @@ export class SurveyMap {
         // Stop pin clicks also counting as map clicks (which start adding a pin).
         bubblingMouseEvents: false,
       });
-      const renderPopup = this.options.renderPopup;
-      // Looks the pin up on open, so the popup shows its latest data.
-      if (renderPopup) marker.bindPopup(() => renderPopup(this.pinsById.get(pin.id) ?? pin));
+      // Each pin's popup holds one fixed, empty element for the UI to render into
+      // (see pinForPopup). Not a builder function: Leaflet re-runs those on
+      // popup.update(), swapping in a new element.
+      marker.bindPopup(document.createElement('div'));
+      this.popupPinIds.set(marker.getPopup()!, pin.id);
       marker.addTo(this.pinLayer);
       this.markers.set(pin.id, marker);
     }

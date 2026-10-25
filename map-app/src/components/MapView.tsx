@@ -42,15 +42,7 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
     const container = containerRef.current;
     if (!container) return;
 
-    // Pin popups get an empty element; the pin is looked up when it opens.
-    const pinForElement = new WeakMap<HTMLElement, Pin>();
-
     const surveyMap = new SurveyMap(container, {
-      renderPopup: (pin) => {
-        const element = document.createElement('div');
-        pinForElement.set(element, pin);
-        return element;
-      },
       // A click on the map offers to add a pin there, rather than opening the
       // form straight away, so stray clicks (e.g. closing a popup) don't start a pin.
       onMapClick: (latlng) => {
@@ -67,10 +59,11 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
     });
 
     surveyMap.map.on('popupopen', (event: L.PopupEvent) => {
+      // Pin popups each hold a fixed empty element; render the pin's latest data into it.
+      const pin = surveyMap.pinForPopup(event.popup);
       const element = event.popup.getContent();
-      if (element instanceof HTMLElement) {
-        const pin = pinForElement.get(element);
-        if (pin) setOpenPopup({ popup: event.popup, element, target: { kind: 'pin', pin } });
+      if (pin && element instanceof HTMLElement) {
+        setOpenPopup({ popup: event.popup, element, target: { kind: 'pin', pin } });
       }
     });
     surveyMap.map.on('popupclose', (event: L.PopupEvent) => {
