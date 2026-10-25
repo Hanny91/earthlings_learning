@@ -1,0 +1,30 @@
+name: Apply database migrations
+
+on:
+  push:
+    # maps is included while the survey map is built there; the "Run workflow"
+    # button only appears once this file is on master. Remove maps after merging.
+    branches: [ master, maps ]
+    paths:
+      - 'db/migrations/**'
+      - 'db/migrate.sh'
+      - '.github/workflows/migrate.yml'
+  workflow_dispatch:    # allows manual runs from the Actions tab
+
+# Never run two migration jobs against the database at once.
+concurrency:
+  group: db-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Apply pending migrations
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      run: bash db/migrate.sh
