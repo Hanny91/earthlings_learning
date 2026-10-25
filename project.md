@@ -21,9 +21,10 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 ### Configuration
 
 - Add `https://earthlingslearning.co.uk` to Neon Auth's trusted domains.
-- Only two values are exposed to the client as `VITE_` variables:
+- Only three values are exposed to the client as `VITE_` variables, all public by nature:
   - `VITE_DATA_API_URL`
   - `VITE_AUTH_URL`
+  - `VITE_THUNDERFOREST_KEY` (appears in every tile request; the map falls back to OpenStreetMap tiles when it is unset)
 - `DATABASE_URL` is never shipped to the client. It is stored as a GitHub secret and used only by the migrations workflow.
 
 ---

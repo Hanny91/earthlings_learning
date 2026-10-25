@@ -27,6 +27,7 @@ jobs:
       env:
         VITE_DATA_API_URL: ${{ vars.VITE_DATA_API_URL }}
         VITE_AUTH_URL: ${{ vars.VITE_AUTH_URL }}
+        VITE_THUNDERFOREST_KEY: ${{ vars.VITE_THUNDERFOREST_KEY }}
       run: |
         npm ci
         npm run build

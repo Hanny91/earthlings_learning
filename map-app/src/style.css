@@ -1,0 +1,38 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+#map {
+  height: 100%;
+}
+
+.pin-filter {
+  background: #fff8e7;
+  padding: 0.5rem 0.75rem;
+  font: 14px/1.4 Georgia, 'Times New Roman', serif;
+  color: #4a3f2a;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.pin-filter__title {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.pin-filter__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.pin-filter__swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}

@@ -37,6 +37,13 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **Error bodies have PostgREST's shape** (`code`, `message`, `hint`), which is what the friendly error messages rely on.
 - [ ] **An update or delete the user isn't allowed to make returns an empty list**, not an error. RLS hides the row, and the client turns the empty list into a "no permission" message.
 
+## Map (`map-app/src/map.ts`, `map-app/src/layers.ts`)
+
+- [ ] **The Thunderforest Landscape URL and key parameter are correct**: `https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}{r}.png?apikey=…`. Also check whether the key should be restricted to `earthlingslearning.co.uk` in the Thunderforest dashboard.
+- [ ] **The OpenStreetMap fallback is acceptable for development only.** OSM's tile policy doesn't allow heavy production use, so set `VITE_THUNDERFOREST_KEY` before going live.
+- [ ] **Default view** (centre 54.5, -3, zoom 6, showing the whole UK) is where you want the map to open.
+- [ ] **Overlay layers are still to do.** Soil parent material/hydrogeology, rivers and MAGIC have empty panes reserved in `layers.ts`; each needs a WMS URL and layer name.
+
 ## Database behaviour
 
 - [ ] **Identity column inserts work** for the `authenticated` role, which has no separate sequence grant.
@@ -45,7 +52,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 ## Build and deploy
 
-- [ ] **GitHub repository variables** `VITE_DATA_API_URL` and `VITE_AUTH_URL` are set (as variables, not secrets).
+- [ ] **GitHub repository variables** `VITE_DATA_API_URL`, `VITE_AUTH_URL` and `VITE_THUNDERFOREST_KEY` are set (as variables, not secrets).
 - [ ] **GitHub secret** `DATABASE_URL` is set for the migrations workflow.
 - [ ] **`psql` is available on `ubuntu-latest`** for [db/migrate.sh](db/migrate.sh). It's normally pre-installed.
 - [ ] **The FTP upload excludes** `map-app/`, `db/` and the markdown docs, and uploads the built `map/` folder.
