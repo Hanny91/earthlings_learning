@@ -44,6 +44,14 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **Default view** (centre 54.5, -3, zoom 6, showing the whole UK) is where you want the map to open.
 - [ ] **Overlay layers are still to do.** Soil parent material/hydrogeology, rivers and MAGIC have empty panes reserved in `layers.ts`; each needs a WMS URL and layer name.
 
+## UI (`map-app/src/components/`)
+
+- [ ] **The 8-character minimum password** in the sign-up form matches Neon Auth's own rule. If Neon's minimum is different, its error message will show instead.
+- [ ] **The private-property advice wording** in the add-pin form ([PinForm.tsx](map-app/src/components/PinForm.tsx)) says what you want.
+- [ ] **Pin popups size correctly.** React renders popup content into Leaflet's popup after Leaflet has sized it, so [MapView.tsx](map-app/src/components/MapView.tsx) calls `popup.update()` once the content is there. Check that popups aren't narrow or clipped on first open.
+- [ ] **An open pin popup stays open** when the map pans to fit it, which triggers a reload. Markers are now kept by pin ID ([map.ts](map-app/src/map.ts)), so a reload shouldn't close it.
+- [ ] **`<dialog>` support** covers the browsers your users have. All current browsers support it.
+
 ## Database behaviour
 
 - [ ] **Identity column inserts work** for the `authenticated` role, which has no separate sequence grant.
@@ -56,6 +64,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **GitHub secret** `DATABASE_URL` is set for the migrations workflow.
 - [ ] **`psql` is available on `ubuntu-latest`** for [db/migrate.sh](db/migrate.sh). It's normally pre-installed.
 - [ ] **The FTP upload excludes** `map-app/`, `db/` and the markdown docs, and uploads the built `map/` folder.
+- [ ] **The dev server still loads the app with the narrowed allow list** (`server.fs.allow: ['.', '../assets/images']` in [vite.config.ts](map-app/vite.config.ts)). Vite should resolve both entries from `map-app/`. If the page or Leaflet's CSS returns 403 in `npm run dev`, that resolution is the cause.
 - [ ] **Node 22 builds cleanly.** Locally you're on Node 20.12, which only gives engine warnings for some of `better-auth`'s dependencies.
 
 ## Placeholders to replace

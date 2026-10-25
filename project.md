@@ -15,7 +15,7 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 | Auth | Neon Auth, with the organization plugin |
 | Data access | Neon Data API, all calls routed through a single `pinsApi` module |
 | Authorisation | Postgres row-level security (RLS), keyed on the signed-in user's ID from the auth token (`auth.user_id()`) |
-| Frontend | Vite + TypeScript, built into `/map/` |
+| Frontend | Vite + TypeScript + React, with Leaflet for the map, built into `/map/` |
 | Email | SMTP provider — later, once the app is running |
 
 ### Configuration
@@ -35,7 +35,9 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 - Organisations and memberships are managed by the Neon Auth organization plugin.
 - Sign-in is required to add pins, not to view the map.
 
-> **TODO:** confirm sign-in methods (email/password, magic link, OAuth providers) and the invite flow for organisations.
+> **TODO:** confirm sign-in methods (email/password, magic link, OAuth providers).
+
+**Organisation invites (for the test run):** by hand. An owner creates an invite in the app and copies the link, then sends it themselves (e.g. WhatsApp or their own email). The invitee opens it, signs in or creates an account, and joins. Emailed invites come later with SMTP.
 
 ---
 

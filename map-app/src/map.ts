@@ -34,6 +34,8 @@ export class SurveyMap {
   private readonly pinLayer = L.layerGroup();
   private readonly filter: PinFilterControl;
   private pins: Pin[] = [];
+  private pinsById = new Map<number, Pin>();
+  private readonly markers = new Map<number, L.CircleMarker>();
   // Every organisation seen so far, so filter entries don't vanish as the view moves.
   private readonly orgNames = new Map<string, string>();
   private readonly hidden = new Set<string>();
@@ -96,26 +98,49 @@ export class SurveyMap {
     this.loadTimer = window.setTimeout(() => void this.reload(), LOAD_DELAY_MS);
   }
 
-  private render(): void {
-    this.pinLayer.clearLayers();
-    for (const pin of this.pins) {
-      const key = pin.organisationId ?? INDIVIDUAL_KEY;
-      if (this.hidden.has(key)) continue;
+  /** Stops loading and removes the map, e.g. when its React component unmounts. */
+  destroy(): void {
+    window.clearTimeout(this.loadTimer);
+    this.inFlight?.abort();
+    this.map.remove();
+  }
 
-      const colour = colourFor(pin.organisationId);
+  // Markers are kept by pin ID and only added or removed when the set changes,
+  // so an open popup survives reloads (e.g. the reload after a popup pans the map).
+  private render(): void {
+    const visible = new Map<number, Pin>();
+    for (const pin of this.pins) {
+      if (!this.hidden.has(pin.organisationId ?? INDIVIDUAL_KEY)) visible.set(pin.id, pin);
+    }
+
+    for (const [id, marker] of this.markers) {
+      if (!visible.has(id)) {
+        marker.remove();
+        this.markers.delete(id);
+      }
+    }
+
+    for (const pin of visible.values()) {
+      const style = markerStyle(pin);
+      const existing = this.markers.get(pin.id);
+      if (existing) {
+        existing.setLatLng([pin.lat, pin.lng]).setStyle(style);
+        continue;
+      }
       const marker = L.circleMarker([pin.lat, pin.lng], {
+        ...style,
         radius: 7,
-        color: '#ffffff',
-        weight: 2,
-        fillColor: colour,
-        fillOpacity: 0.9,
-        // Dashed outline marks pins only the organisation's members can see.
-        dashArray: pin.visibility === 'org_only' ? '3 2' : undefined,
+        // Stop pin clicks also counting as map clicks (which start adding a pin).
+        bubblingMouseEvents: false,
       });
       const renderPopup = this.options.renderPopup;
-      if (renderPopup) marker.bindPopup(() => renderPopup(pin));
+      // Looks the pin up on open, so the popup shows its latest data.
+      if (renderPopup) marker.bindPopup(() => renderPopup(this.pinsById.get(pin.id) ?? pin));
       marker.addTo(this.pinLayer);
+      this.markers.set(pin.id, marker);
     }
+
+    this.pinsById = new Map(this.pins.map((pin) => [pin.id, pin]));
     this.filter.update(this.filterEntries());
   }
 
@@ -127,6 +152,17 @@ export class SurveyMap {
       (entry) => ({ ...entry, visible: !this.hidden.has(entry.key) }),
     );
   }
+}
+
+function markerStyle(pin: Pin): L.PathOptions {
+  return {
+    color: '#ffffff',
+    weight: 2,
+    fillColor: colourFor(pin.organisationId),
+    fillOpacity: 0.9,
+    // Dashed outline marks pins only the organisation's members can see.
+    dashArray: pin.visibility === 'org_only' ? '3 2' : undefined,
+  };
 }
 
 /** Same organisation, same colour, on every load and for every viewer. */
