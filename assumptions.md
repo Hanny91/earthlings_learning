@@ -24,7 +24,13 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **The stock Better Auth client works against `VITE_AUTH_URL`**, using `better-auth/client` with the `organizationClient` and `jwtClient` plugins. If Neon requires its own SDK instead, only this file changes.
 - [ ] **`client.token()` (jwt plugin) returns the token the Data API accepts** as `Authorization: Bearer …`.
 - [ ] **The token has an `exp` claim.** If it doesn't, the cache simply fetches a fresh token on every request, which still works but is slower.
-- [ ] **Email/password sign-up works as expected.** If email verification is turned on, sign-up won't return a session, and the user sees "Check your email to finish signing in".
+- [ ] **Email verification flow** (verification is on, and Neon Auth sends the emails):
+  - Sign-up doesn't sign the user in. The dialog switches to "Check your email".
+  - The verification link returns to the page the user signed up from (`callbackURL`), including any `?invite=`. Check that Neon allows `localhost:5173` and `earthlingslearning.co.uk` as return addresses.
+  - After verifying, the user arrives **signed in**. This depends on Better Auth's "sign in after verification" setting; if Neon doesn't do it, they'll just need to sign in, and the "you'll be brought back here, signed in" wording in [SignInDialog.tsx](map-app/src/components/SignInDialog.tsx) should change.
+  - Signing in before verifying fails with code `EMAIL_NOT_VERIFIED`, which shows the "verify first" message and a resend button.
+  - `client.sendVerificationEmail` resends the email.
+- [ ] **Neon's built-in email** has acceptable sending limits and sender address for the test run, or an SMTP provider is needed sooner.
 - [ ] **`client.organization.list()` returns the user's organisations** with `id` and `name`.
 
 ## Organisations and invites (`map-app/src/auth.ts`, `OrganisationsDialog.tsx`, `AcceptInviteDialog.tsx`)

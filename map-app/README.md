@@ -124,7 +124,7 @@ During testing:
 
 1. Organisations are created by hand outside the app. There's no create form yet.
 2. The owner opens **Organisations** in the app and invites the first admin by email. This creates a link like `https://earthlingslearning.co.uk/map/?invite=<id>`.
-3. No email is sent. The owner copies the link and sends it themselves.
+3. The owner copies the link and sends it themselves. Neon Auth may also email the invite; the app doesn't accept Neon's own invite links yet.
 4. The invitee opens the link and signs in or creates an account **with the invited email address**, then joins.
 5. That admin can invite everyone else the same way.
 

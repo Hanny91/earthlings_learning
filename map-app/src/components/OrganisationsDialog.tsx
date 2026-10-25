@@ -264,7 +264,7 @@ function InviteForm({ organisationId, onInvited }: { organisationId: string; onI
       </form>
       {link && (
         <div className="invite-created">
-          <p>Invite created. No email is sent, so copy this link and send it to them yourself:</p>
+          <p>Invite created. You can also send them this link yourself, in case the email doesn’t arrive:</p>
           <CopyLink url={link} />
         </div>
       )}

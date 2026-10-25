@@ -34,10 +34,11 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 - Sign-in via Neon Auth.
 - Organisations and memberships are managed by the Neon Auth organization plugin.
 - Sign-in is required to add pins, not to view the map.
+- Email verification is on, so accounts are tied to real email addresses (which invites depend on). Neon Auth sends the verification emails.
 
-> **TODO:** confirm sign-in methods (email/password, magic link, OAuth providers).
+> Sign in only via email and password
 
-**Organisations and invites (for the test run):** organisations are created by hand outside the app, and there is no "create organisation" form yet. The owner invites each organisation's first admin from the app's Organisations panel, and that admin invites everyone else. Invites are sent by hand: creating one gives a link (`/map/?invite=<id>`) that the inviter copies and sends themselves (e.g. WhatsApp or their own email). The invitee opens it, signs in or creates an account with the invited email address, and joins. Emailed invites come later with SMTP.
+**Organisations and invites (for the test run):** organisations are created by hand outside the app, and there is no "create organisation" form yet. The owner invites each organisation's first admin from the app's Organisations panel, and that admin invites everyone else. Invites are sent by hand: creating one gives a link (`/map/?invite=<id>`) that the inviter copies and sends themselves (e.g. WhatsApp or their own email). The invitee opens it, signs in or creates an account with the invited email address, and joins. Neon Auth can also email invites; once we've seen where its email link points, the app can accept that format too, with copy-link kept as a backup.
 
 ---
 

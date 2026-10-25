@@ -2,11 +2,14 @@ name: Apply database migrations
 
 on:
   push:
-    branches: [ master ]
+    # maps is included while the survey map is built there; the "Run workflow"
+    # button only appears once this file is on master. Remove maps after merging.
+    branches: [ master, maps ]
     paths:
       - 'db/migrations/**'
       - 'db/migrate.sh'
-  workflow_dispatch:    # allows manual runs, e.g. from the maps branch
+      - '.github/workflows/migrate.yml'
+  workflow_dispatch:    # allows manual runs from the Actions tab
 
 # Never run two migration jobs against the database at once.
 concurrency:

@@ -7,6 +7,7 @@
 // required, swap the client here and keep the exported functions the same.
 //
 // Sign-in method is email/password for now; see the TODO in project.md.
+// Email verification is on: Neon Auth sends the emails.
 
 import { createAuthClient } from 'better-auth/client';
 import { jwtClient, organizationClient } from 'better-auth/client/plugins';
@@ -57,7 +58,17 @@ export interface InviteSummary {
   role: OrgRole;
 }
 
-export class AuthError extends Error {}
+export class AuthError extends Error {
+  constructor(message: string, readonly code?: string) {
+    super(message);
+  }
+}
+
+/** Better Auth's error code for signing in before verifying the email address. */
+export const EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED';
+
+/** Email verification is on, so sign-up waits for the emailed link unless Neon signs the user straight in. */
+export type SignUpResult = { status: 'signedIn'; user: AuthUser } | { status: 'verifyEmail' };
 
 type AuthListener = (user: AuthUser | null) => void;
 
@@ -78,11 +89,17 @@ function setUser(user: AuthUser | null): void {
   listeners.forEach((listener) => listener(user));
 }
 
-function unwrap<T>(result: { data: T | null; error: { message?: string } | null }): T {
+function unwrap<T>(result: { data: T | null; error: { message?: string; code?: string } | null }): T {
   if (result.error || result.data === null) {
-    throw new AuthError(result.error?.message ?? 'Something went wrong. Please try again.');
+    throw new AuthError(result.error?.message ?? 'Something went wrong. Please try again.', result.error?.code);
   }
   return result.data;
+}
+
+// Where links in verification emails send people back to: this page, keeping
+// any ?invite= so an invitee lands back on their invite.
+function returnUrl(): string {
+  return window.location.href;
 }
 
 /** Calls the listener now and on every sign-in or sign-out. Returns an unsubscribe function. */
@@ -104,18 +121,33 @@ export async function loadSession(): Promise<AuthUser | null> {
   return currentUser;
 }
 
+/** Fails with code EMAIL_NOT_VERIFIED if the account's email hasn't been verified yet. */
 export async function signIn(email: string, password: string): Promise<AuthUser> {
-  unwrap(await client.signIn.email({ email, password }));
+  try {
+    unwrap(await client.signIn.email({ email, password, callbackURL: returnUrl() }));
+  } catch (error) {
+    if (error instanceof AuthError && error.code === EMAIL_NOT_VERIFIED) {
+      throw new AuthError('Please verify your email address first, using the link we emailed you.', EMAIL_NOT_VERIFIED);
+    }
+    throw error;
+  }
   const user = await loadSession();
   if (!user) throw new AuthError('Signed in, but the session could not be loaded.');
   return user;
 }
 
-export async function signUp(name: string, email: string, password: string): Promise<AuthUser> {
-  unwrap(await client.signUp.email({ name, email, password }));
+/**
+ * Creates an account. With email verification on, the user is usually not
+ * signed in yet: they follow the emailed link, which brings them back here.
+ */
+export async function signUp(name: string, email: string, password: string): Promise<SignUpResult> {
+  unwrap(await client.signUp.email({ name, email, password, callbackURL: returnUrl() }));
   const user = await loadSession();
-  if (!user) throw new AuthError('Account created. Check your email to finish signing in.');
-  return user;
+  return user ? { status: 'signedIn', user } : { status: 'verifyEmail' };
+}
+
+export async function resendVerificationEmail(email: string): Promise<void> {
+  unwrap(await client.sendVerificationEmail({ email, callbackURL: returnUrl() }));
 }
 
 export async function signOut(): Promise<void> {
@@ -171,8 +203,8 @@ export async function getOrganisationDetails(organisationId: string): Promise<Or
 }
 
 /**
- * Creates an invite and returns its ID. No email is sent while SMTP is
- * deferred; the inviter copies the link from inviteLink() and sends it themselves.
+ * Creates an invite and returns its ID. Neon Auth may also email it; the
+ * inviter can always copy the link from inviteLink() and send it themselves.
  */
 export async function createInvite(organisationId: string, email: string, role: 'admin' | 'member'): Promise<string> {
   const invite = unwrap(await client.organization.inviteMember({ organizationId: organisationId, email, role }));
