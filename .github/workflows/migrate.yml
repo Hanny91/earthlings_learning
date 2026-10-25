@@ -1,0 +1,27 @@
+name: Apply database migrations
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'db/migrations/**'
+      - 'db/migrate.sh'
+  workflow_dispatch:    # allows manual runs, e.g. from the maps branch
+
+# Never run two migration jobs against the database at once.
+concurrency:
+  group: db-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Apply pending migrations
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      run: bash db/migrate.sh

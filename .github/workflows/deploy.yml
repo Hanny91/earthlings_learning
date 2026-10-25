@@ -12,7 +12,25 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+        cache-dependency-path: map-app/package-lock.json
+
+    # Builds the survey map into ./map/, which is uploaded with the rest of the site.
+    # The VITE_ values are public, so they are repository variables, not secrets.
+    - name: Build survey map
+      working-directory: map-app
+      env:
+        VITE_DATA_API_URL: ${{ vars.VITE_DATA_API_URL }}
+        VITE_AUTH_URL: ${{ vars.VITE_AUTH_URL }}
+      run: |
+        npm ci
+        npm run build
+
     - name: Deploy via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
@@ -27,3 +45,7 @@ jobs:
           **/node_modules/**
           **/.env*
           **/README.md
+          map-app/**
+          db/**
+          project.md
+          .vscode/**
