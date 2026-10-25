@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "better-auth": "^1.7.12",
     "leaflet": "^1.9.4"
   },
   "devDependencies": {
