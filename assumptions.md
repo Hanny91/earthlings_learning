@@ -27,6 +27,16 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **Email/password sign-up works as expected.** If email verification is turned on, sign-up won't return a session, and the user sees "Check your email to finish signing in".
 - [ ] **`client.organization.list()` returns the user's organisations** with `id` and `name`.
 
+## Data API client (`map-app/src/pinsApi.ts`)
+
+- [ ] **`VITE_DATA_API_URL` is the full base URL Neon gives you** (including any path such as `/rest/v1`) with no trailing slash, so `/pins` and `/rpc/pins_in_bbox` can be appended directly.
+- [ ] **The PostgREST features the code uses are supported:** `Prefer: return=representation` and `?select=id` on writes.
+- [ ] **Requests without an `Authorization` header run as `anonymous`**, so logged-out visitors can load public pins.
+- [ ] **The Data API sends CORS headers** for `https://earthlingslearning.co.uk` (and `http://localhost:5173` for development).
+- [ ] **`geom` accepts EWKT text** (`SRID=4326;POINT(lng lat)`) in insert and update bodies.
+- [ ] **Error bodies have PostgREST's shape** (`code`, `message`, `hint`), which is what the friendly error messages rely on.
+- [ ] **An update or delete the user isn't allowed to make returns an empty list**, not an error. RLS hides the row, and the client turns the empty list into a "no permission" message.
+
 ## Database behaviour
 
 - [ ] **Identity column inserts work** for the `authenticated` role, which has no separate sequence grant.
