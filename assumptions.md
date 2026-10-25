@@ -7,6 +7,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 ## Neon setup
 
 - [ ] **Data API is enabled** on the database, so `auth.user_id()` and the `anonymous` / `authenticated` roles exist. `auth.user_id()` is confirmed, because migration `001` applied; the roles are confirmed once `003` applies.
+- [ ] **The Data API roles can call `auth.user_id()`.** First test failed with "permission denied for schema auth"; migration `006` grants `usage` on schema `auth` and `execute` on `auth.user_id()` to `anonymous` and `authenticated`. If the database owner isn't allowed to grant those, `006` fails and the fallback is a wrapper function in `app_private`.
 - [ ] **Data API trusts Neon Auth tokens**, so a signed-in request runs as `authenticated` with `auth.user_id()` set to the user's ID.
 - [x] **Neon Auth is enabled with the organization plugin** before the first migration run. Migration `002` reads its tables, and Postgres checks they exist when it creates the functions.
 - [ ] **`https://earthlingslearning.co.uk` is in Neon Auth's trusted domains.**
@@ -21,15 +22,14 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 ## Auth client (`map-app/src/auth.ts`)
 
-- [ ] **The stock Better Auth client works against `VITE_AUTH_URL`**, using `better-auth/client` with the `organizationClient` and `jwtClient` plugins. If Neon requires its own SDK instead, only this file changes.
-- [ ] **`client.token()` (jwt plugin) returns the token the Data API accepts** as `Authorization: Bearer …`.
+- [x] **The stock Better Auth client works against `VITE_AUTH_URL`**, using `better-auth/client` with the `organizationClient` and `jwtClient` plugins. If Neon requires its own SDK instead, only this file changes.
+- [x] **`client.token()` (jwt plugin) returns the token the Data API accepts** as `Authorization: Bearer …`. Confirmed: the token comes from `/token`. An early "no token" error came from pins loading before the session was restored; `getAccessToken()` now waits for the first session check.
 - [ ] **The token has an `exp` claim.** If it doesn't, the cache simply fetches a fresh token on every request, which still works but is slower.
-- [ ] **Email verification flow** (verification is on, and Neon Auth sends the emails):
-  - Sign-up doesn't sign the user in. The dialog switches to "Check your email".
-  - The verification link returns to the page the user signed up from (`callbackURL`), including any `?invite=`. Check that Neon allows `localhost:5173` and `earthlingslearning.co.uk` as return addresses.
-  - After verifying, the user arrives **signed in**. This depends on Better Auth's "sign in after verification" setting; if Neon doesn't do it, they'll just need to sign in, and the "you'll be brought back here, signed in" wording in [SignInDialog.tsx](map-app/src/components/SignInDialog.tsx) should change.
-  - Signing in before verifying fails with code `EMAIL_NOT_VERIFIED`, which shows the "verify first" message and a resend button.
-  - `client.sendVerificationEmail` resends the email.
+- [x] **Email verification by code.** Neon Auth is set to *Verification code*; confirmed that the email contains a code, not a link.
+  - Neon's code option is Better Auth's email-OTP plugin, so `emailOTPClient` with `client.emailOtp.verifyEmail({ email, otp })` and `client.emailOtp.sendVerificationOtp({ email, type: 'email-verification' })` work.
+  - Sign-up doesn't sign the user in. The dialog switches to "Check your email" with a code box.
+  - After a correct code, the user is signed in. If verifying doesn't start a session, the dialog signs in with the password just typed, so either way should work.
+  - Signing in before verifying fails with code `EMAIL_NOT_VERIFIED`. The dialog then sends a new code and shows the code box.
 - [ ] **Neon's built-in email** has acceptable sending limits and sender address for the test run, or an SMTP provider is needed sooner.
 - [ ] **`client.organization.list()` returns the user's organisations** with `id` and `name`.
 
@@ -47,8 +47,8 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 - [ ] **`VITE_DATA_API_URL` is the full base URL Neon gives you** (including any path such as `/rest/v1`) with no trailing slash, so `/pins` and `/rpc/pins_in_bbox` can be appended directly.
 - [ ] **The PostgREST features the code uses are supported:** `Prefer: return=representation` and `?select=id` on writes.
-- [ ] **Requests without an `Authorization` header run as `anonymous`**, so logged-out visitors can load public pins.
-- [ ] **The Data API sends CORS headers** for `https://earthlingslearning.co.uk` (and `http://localhost:5173` for development).
+- [ ] **Requests without an `Authorization` header run as `anonymous`**, so logged-out visitors can load public pins. **Failed on first test** ("missing authentication credentials: required authorization bearer token in JWT format") because the Data API's **Anonymous role** setting (under *Show advanced*) was empty. Set it to `anonymous`, then re-check while signed out.
+- [ ] **The Data API sends CORS headers** for `https://earthlingslearning.co.uk` (and `http://localhost:5173` for development). Set these in the Data API's *CORS allowed origins* (under *Show advanced*).
 - [ ] **`geom` accepts EWKT text** (`SRID=4326;POINT(lng lat)`) in insert and update bodies.
 - [ ] **Error bodies have PostgREST's shape** (`code`, `message`, `hint`), which is what the friendly error messages rely on.
 - [ ] **An update or delete the user isn't allowed to make returns an empty list**, not an error. RLS hides the row, and the client turns the empty list into a "no permission" message.

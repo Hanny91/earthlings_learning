@@ -36,6 +36,7 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
   // SurveyMap is created once, so it calls through this ref to get the latest props.
   const handlers = useRef({ onAddPin, onEditPin, onDeletePin, notice });
   handlers.current = { onAddPin, onEditPin, onDeletePin, notice };
+  const lastLoadError = useRef<string | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -57,7 +58,12 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
         const popup = L.popup().setLatLng(latlng).setContent(element).openOn(surveyMap.map);
         setOpenPopup({ popup, element, target: { kind: 'new', latlng } });
       },
-      onLoadError: (error) => handlers.current.notice(`Couldn't load pins: ${error.message}`, 'error'),
+      // Every pan and zoom reloads, so show a given load error once rather than on every move.
+      onLoadError: (error) => {
+        if (error.message === lastLoadError.current) return;
+        lastLoadError.current = error.message;
+        handlers.current.notice(`Couldn't load pins: ${error.message}`, 'error');
+      },
     });
 
     surveyMap.map.on('popupopen', (event: L.PopupEvent) => {
@@ -87,6 +93,8 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
       firstLoad.current = false;
       return;
     }
+    // A sign-in change or deliberate reload may fix (or change) the error, so show it again if it recurs.
+    lastLoadError.current = null;
     void mapRef.current?.reload();
   }, [reloadKey, user?.id]);
 

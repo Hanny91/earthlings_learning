@@ -175,6 +175,8 @@ async function request<T>(
 }
 
 function toApiError(status: number, body: PostgrestError): ApiError {
+  // The friendly messages below hide the database's own wording, which is what's needed for debugging.
+  console.warn(`Data API error (${status}):`, body);
   if (body.hint === 'rate_limit') {
     return new ApiError("You've added a lot of pins recently. Please wait a while before adding more.", body.code);
   }

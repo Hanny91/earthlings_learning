@@ -7,10 +7,14 @@
 // required, swap the client here and keep the exported functions the same.
 //
 // Sign-in method is email/password for now; see the TODO in project.md.
-// Email verification is on: Neon Auth sends the emails.
+// Email verification is on, using codes: Neon Auth emails a code, which the
+// user types into the app.
+//
+// ASSUMPTION (verify): Neon's "Verification code" option is Better Auth's
+// email-OTP plugin, so emailOTPClient's verifyEmail and sendVerificationOtp work.
 
 import { createAuthClient } from 'better-auth/client';
-import { jwtClient, organizationClient } from 'better-auth/client/plugins';
+import { emailOTPClient, jwtClient, organizationClient } from 'better-auth/client/plugins';
 import { config } from './config';
 
 export interface AuthUser {
@@ -67,7 +71,7 @@ export class AuthError extends Error {
 /** Better Auth's error code for signing in before verifying the email address. */
 export const EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED';
 
-/** Email verification is on, so sign-up waits for the emailed link unless Neon signs the user straight in. */
+/** Email verification is on, so sign-up usually waits for the emailed code. */
 export type SignUpResult = { status: 'signedIn'; user: AuthUser } | { status: 'verifyEmail' };
 
 type AuthListener = (user: AuthUser | null) => void;
@@ -75,13 +79,20 @@ type AuthListener = (user: AuthUser | null) => void;
 const client = createAuthClient({
   baseURL: config.authUrl,
   fetchOptions: { credentials: 'include' },
-  plugins: [organizationClient(), jwtClient()],
+  plugins: [organizationClient(), jwtClient(), emailOTPClient()],
 });
 
 let currentUser: AuthUser | null = null;
 let cachedToken: { value: string; expiresAt: number } | null = null;
 const listeners = new Set<AuthListener>();
 const organisationListeners = new Set<() => void>();
+
+// Settles once the first loadSession() finishes, so requests made while the
+// page is still restoring a session wait for it instead of going out without a token.
+let markSessionChecked: () => void;
+const sessionChecked = new Promise<void>((resolve) => {
+  markSessionChecked = resolve;
+});
 
 function setUser(user: AuthUser | null): void {
   currentUser = user;
@@ -94,12 +105,6 @@ function unwrap<T>(result: { data: T | null; error: { message?: string; code?: s
     throw new AuthError(result.error?.message ?? 'Something went wrong. Please try again.', result.error?.code);
   }
   return result.data;
-}
-
-// Where links in verification emails send people back to: this page, keeping
-// any ?invite= so an invitee lands back on their invite.
-function returnUrl(): string {
-  return window.location.href;
 }
 
 /** Calls the listener now and on every sign-in or sign-out. Returns an unsubscribe function. */
@@ -115,19 +120,23 @@ export function getUser(): AuthUser | null {
 
 /** Restores an existing session on page load. Logged-out visitors resolve to null. */
 export async function loadSession(): Promise<AuthUser | null> {
-  const { data } = await client.getSession();
-  const user = data?.user;
-  setUser(user ? { id: user.id, name: user.name, email: user.email } : null);
-  return currentUser;
+  try {
+    const { data } = await client.getSession();
+    const user = data?.user;
+    setUser(user ? { id: user.id, name: user.name, email: user.email } : null);
+    return currentUser;
+  } finally {
+    markSessionChecked();
+  }
 }
 
 /** Fails with code EMAIL_NOT_VERIFIED if the account's email hasn't been verified yet. */
 export async function signIn(email: string, password: string): Promise<AuthUser> {
   try {
-    unwrap(await client.signIn.email({ email, password, callbackURL: returnUrl() }));
+    unwrap(await client.signIn.email({ email, password }));
   } catch (error) {
     if (error instanceof AuthError && error.code === EMAIL_NOT_VERIFIED) {
-      throw new AuthError('Please verify your email address first, using the link we emailed you.', EMAIL_NOT_VERIFIED);
+      throw new AuthError('Please verify your email address first.', EMAIL_NOT_VERIFIED);
     }
     throw error;
   }
@@ -138,16 +147,26 @@ export async function signIn(email: string, password: string): Promise<AuthUser>
 
 /**
  * Creates an account. With email verification on, the user is usually not
- * signed in yet: they follow the emailed link, which brings them back here.
+ * signed in yet: Neon emails a code for verifyEmailCode().
  */
 export async function signUp(name: string, email: string, password: string): Promise<SignUpResult> {
-  unwrap(await client.signUp.email({ name, email, password, callbackURL: returnUrl() }));
+  unwrap(await client.signUp.email({ name, email, password }));
   const user = await loadSession();
   return user ? { status: 'signedIn', user } : { status: 'verifyEmail' };
 }
 
-export async function resendVerificationEmail(email: string): Promise<void> {
-  unwrap(await client.sendVerificationEmail({ email, callbackURL: returnUrl() }));
+/** Emails a new verification code. */
+export async function sendVerificationCode(email: string): Promise<void> {
+  unwrap(await client.emailOtp.sendVerificationOtp({ email, type: 'email-verification' }));
+}
+
+/**
+ * Checks the emailed code. Returns the signed-in user if verifying also
+ * signed them in, or null if they still need to sign in with their password.
+ */
+export async function verifyEmailCode(email: string, code: string): Promise<AuthUser | null> {
+  unwrap(await client.emailOtp.verifyEmail({ email, otp: code }));
+  return loadSession();
 }
 
 export async function signOut(): Promise<void> {
@@ -256,14 +275,23 @@ export async function leaveOrganisation(organisationId: string): Promise<void> {
 
 /**
  * A JWT for the Data API's Authorization header, or null when logged out.
- * Cached until shortly before it expires.
+ * Waits for the page's first session check, then caches the token until
+ * shortly before it expires. The token comes from the jwt plugin's /token
+ * endpoint (confirmed with Neon Auth).
  */
 export async function getAccessToken(): Promise<string | null> {
+  await sessionChecked;
   if (!currentUser) return null;
   if (cachedToken && cachedToken.expiresAt - 30_000 > Date.now()) {
     return cachedToken.value;
   }
-  const { token } = unwrap(await client.token());
+  const { data, error } = await client.token();
+  const token = data?.token;
+  if (error || !token) {
+    // Without this, requests would silently go out with no token and be treated as logged out.
+    console.warn('Auth /token request failed:', error ?? data);
+    throw new AuthError("Signed in, but couldn't get an access token for the map data. Try signing out and in again.");
+  }
   cachedToken = { value: token, expiresAt: tokenExpiry(token) };
   return token;
 }

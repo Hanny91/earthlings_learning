@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { AuthError, EMAIL_NOT_VERIFIED, resendVerificationEmail, signIn, signUp } from '../auth';
+import { AuthError, EMAIL_NOT_VERIFIED, sendVerificationCode, signIn, signUp, verifyEmailCode } from '../auth';
 import { errorMessage } from '../errors';
 import { Dialog } from './Dialog';
 
-type Mode = 'signIn' | 'signUp' | 'checkEmail';
+type Mode = 'signIn' | 'signUp' | 'enterCode';
 
 interface SignInDialogProps {
   /** Optional explanation shown above the form, e.g. why sign-in is needed. */
@@ -15,7 +15,7 @@ interface SignInDialogProps {
 const TITLES: Record<Mode, string> = {
   signIn: 'Sign in',
   signUp: 'Create an account',
-  checkEmail: 'Check your email',
+  enterCode: 'Check your email',
 };
 
 export function SignInDialog({ intro, onClose, onSignedIn }: SignInDialogProps) {
@@ -23,70 +23,115 @@ export function SignInDialog({ intro, onClose, onSignedIn }: SignInDialogProps) 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
-  const [unverified, setUnverified] = useState(false);
+  const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
   const isSignUp = mode === 'signUp';
 
   function switchMode(next: Mode) {
     setMode(next);
     setError('');
-    setUnverified(false);
+    setInfo('');
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError('');
-    setUnverified(false);
     setBusy(true);
     try {
       if (isSignUp) {
         const result = await signUp(name.trim(), email.trim(), password);
         if (result.status === 'signedIn') return onSignedIn();
-        setMode('checkEmail');
+        setCode('');
+        switchMode('enterCode');
       } else {
         await signIn(email.trim(), password);
         return onSignedIn();
       }
     } catch (err) {
-      setError(errorMessage(err));
-      setUnverified(err instanceof AuthError && err.code === EMAIL_NOT_VERIFIED);
+      if (err instanceof AuthError && err.code === EMAIL_NOT_VERIFIED) {
+        // Signed up earlier but never entered the code: send a fresh one.
+        await resendCode('Your email address isn’t verified yet, so we’ve sent you a new code.');
+      } else {
+        setError(errorMessage(err));
+      }
     }
     setBusy(false);
   }
 
-  async function resend() {
-    setBusy(true);
+  async function handleCode(event: FormEvent) {
+    event.preventDefault();
     setError('');
+    setBusy(true);
     try {
-      await resendVerificationEmail(email.trim());
-      setUnverified(false);
-      setMode('checkEmail');
+      const user = await verifyEmailCode(email.trim(), code.trim());
+      // If verifying didn't start a session, sign in with the password they just typed.
+      if (!user) await signIn(email.trim(), password);
+      return onSignedIn();
     } catch (err) {
       setError(errorMessage(err));
     }
     setBusy(false);
   }
 
-  if (mode === 'checkEmail') {
+  async function resendCode(message = 'We’ve sent you a new code.') {
+    setError('');
+    try {
+      await sendVerificationCode(email.trim());
+      setCode('');
+      setMode('enterCode');
+      setInfo(message);
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
+  if (mode === 'enterCode') {
     return (
-      <Dialog title={TITLES.checkEmail} onClose={onClose}>
-        <div className="form">
+      <Dialog title={TITLES.enterCode} onClose={onClose}>
+        <form className="form" onSubmit={handleCode}>
           <p>
-            We’ve sent a link to <strong>{email.trim()}</strong>. Open it to verify your email address and you’ll be
-            brought back here, signed in.
+            We’ve emailed a verification code to <strong>{email.trim()}</strong>. Enter it below to finish signing in.
           </p>
-          <p className="form-field__hint">It can take a minute or two. Check your spam folder if it doesn’t arrive.</p>
+          {info && <p className="form-field__hint">{info}</p>}
+          <label className="form-field">
+            <span className="form-field__label">Verification code</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              required
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
+            <span className="form-field__hint">It can take a minute or two. Check your spam folder if it doesn’t arrive.</span>
+          </label>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-actions form-actions--spread">
-            <button type="button" className="link-button" disabled={busy} onClick={resend}>
-              Send it again
+            <button
+              type="button"
+              className="link-button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                await resendCode();
+                setBusy(false);
+              }}
+            >
+              Send a new code
             </button>
-            <button type="button" className="button" onClick={() => switchMode('signIn')}>
-              Back to sign in
+            <button type="submit" className="button" disabled={busy}>
+              Verify
             </button>
           </div>
-        </div>
+          <p className="form-switch">
+            <button type="button" className="link-button" onClick={() => switchMode('signIn')}>
+              Back to sign in
+            </button>
+          </p>
+        </form>
       </Dialog>
     );
   }
@@ -117,13 +162,6 @@ export function SignInDialog({ intro, onClose, onSignedIn }: SignInDialogProps) 
           />
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        {unverified && (
-          <p className="form-switch">
-            <button type="button" className="link-button" disabled={busy} onClick={resend}>
-              Resend the verification email
-            </button>
-          </p>
-        )}
         <div className="form-actions">
           <button type="submit" className="button" disabled={busy}>
             {isSignUp ? 'Create account' : 'Sign in'}

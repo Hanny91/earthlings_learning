@@ -76,7 +76,7 @@ The order matters, because the migrations depend on the first two steps.
 
 1. **Turn on the Data API** for the database. It provides `auth.user_id()` and the `anonymous` / `authenticated` roles.
 2. **Turn on Neon Auth with the organization plugin.** Migration `002` reads its `neon_auth` tables.
-3. **Make the Data API trust Neon Auth tokens.**
+3. **Make the Data API trust Neon Auth tokens** (its JWKS URL is filled in automatically). Under *Show advanced*, set **Anonymous role** to `anonymous`, or logged-out visitors get "missing authentication credentials", and set **CORS allowed origins** to the site and `http://localhost:5173`.
 4. **Add `https://earthlingslearning.co.uk`** to Neon Auth's trusted domains, and `http://localhost:5173` while developing.
 5. **Run the migrations** (see below).
 6. **Work through [assumptions.md](../assumptions.md).**

@@ -34,7 +34,7 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 - Sign-in via Neon Auth.
 - Organisations and memberships are managed by the Neon Auth organization plugin.
 - Sign-in is required to add pins, not to view the map.
-- Email verification is on, so accounts are tied to real email addresses (which invites depend on). Neon Auth sends the verification emails.
+- Email verification is on, so accounts are tied to real email addresses (which invites depend on). Neon Auth emails a verification code, which the user enters in the app.
 
 > Sign in only via email and password
 
