@@ -8,10 +8,11 @@ import { useNotice } from './Notices';
 
 interface HeaderProps {
   onSignIn: () => void;
+  onOrganisations: () => void;
 }
 
 /** Link back to the main site, title, and sign-in state. */
-export function Header({ onSignIn }: HeaderProps) {
+export function Header({ onSignIn, onOrganisations }: HeaderProps) {
   const user = useAuth();
   const notice = useNotice();
 
@@ -26,6 +27,9 @@ export function Header({ onSignIn }: HeaderProps) {
         {user ? (
           <>
             <span className="site-header__user">{user.name || user.email}</span>
+            <button type="button" className="button button--small" onClick={onOrganisations}>
+              Organisations
+            </button>
             <button
               type="button"
               className="button button--small"

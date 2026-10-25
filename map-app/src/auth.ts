@@ -23,6 +23,40 @@ export interface Organisation {
   name: string;
 }
 
+/** The organisation plugin's built-in roles. Owners and admins can change any of the organisation's pins and manage members. */
+export type OrgRole = 'owner' | 'admin' | 'member';
+
+export interface OrgMember {
+  /** Membership ID, used to change roles or remove the member. */
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  role: OrgRole;
+}
+
+export interface OrgInvite {
+  id: string;
+  email: string;
+  role: OrgRole;
+  expiresAt: string;
+}
+
+export interface OrganisationDetails extends Organisation {
+  members: OrgMember[];
+  /** Pending invites only. */
+  invites: OrgInvite[];
+}
+
+/** What an invitee sees before accepting. */
+export interface InviteSummary {
+  id: string;
+  organisationName: string;
+  inviterEmail: string;
+  email: string;
+  role: OrgRole;
+}
+
 export class AuthError extends Error {}
 
 type AuthListener = (user: AuthUser | null) => void;
@@ -36,6 +70,7 @@ const client = createAuthClient({
 let currentUser: AuthUser | null = null;
 let cachedToken: { value: string; expiresAt: number } | null = null;
 const listeners = new Set<AuthListener>();
+const organisationListeners = new Set<() => void>();
 
 function setUser(user: AuthUser | null): void {
   currentUser = user;
@@ -93,6 +128,98 @@ export async function listMyOrganisations(): Promise<Organisation[]> {
   if (!currentUser) return [];
   const orgs = unwrap(await client.organization.list());
   return orgs.map((org) => ({ id: org.id, name: org.name }));
+}
+
+// Organisations are created by hand while testing, so there's no createOrganisation here yet.
+//
+// ASSUMPTION (verify once Neon Auth is set up): the organization plugin's
+// client methods and response shapes below match Better Auth's defaults, and
+// the server lets owners and admins invite, change roles and remove members.
+
+/** Called after anything that changes the signed-in user's memberships. Returns an unsubscribe function. */
+export function onOrganisationsChange(listener: () => void): () => void {
+  organisationListeners.add(listener);
+  return () => organisationListeners.delete(listener);
+}
+
+function organisationsChanged(): void {
+  organisationListeners.forEach((listener) => listener());
+}
+
+/** Members and pending invites for one organisation. */
+export async function getOrganisationDetails(organisationId: string): Promise<OrganisationDetails> {
+  const org = unwrap(await client.organization.getFullOrganization({ query: { organizationId: organisationId } }));
+  return {
+    id: org.id,
+    name: org.name,
+    members: org.members.map((member) => ({
+      id: member.id,
+      userId: member.userId,
+      name: member.user.name,
+      email: member.user.email,
+      role: member.role as OrgRole,
+    })),
+    invites: org.invitations
+      .filter((invite) => invite.status === 'pending')
+      .map((invite) => ({
+        id: invite.id,
+        email: invite.email,
+        role: invite.role as OrgRole,
+        expiresAt: new Date(invite.expiresAt).toISOString(),
+      })),
+  };
+}
+
+/**
+ * Creates an invite and returns its ID. No email is sent while SMTP is
+ * deferred; the inviter copies the link from inviteLink() and sends it themselves.
+ */
+export async function createInvite(organisationId: string, email: string, role: 'admin' | 'member'): Promise<string> {
+  const invite = unwrap(await client.organization.inviteMember({ organizationId: organisationId, email, role }));
+  return invite.id;
+}
+
+/** The link an invitee opens to accept, e.g. https://earthlingslearning.co.uk/map/?invite=abc. */
+export function inviteLink(inviteId: string): string {
+  return `${window.location.origin}${import.meta.env.BASE_URL}?invite=${encodeURIComponent(inviteId)}`;
+}
+
+export async function cancelInvite(inviteId: string): Promise<void> {
+  unwrap(await client.organization.cancelInvitation({ invitationId: inviteId }));
+}
+
+/** Invite details for the signed-in invitee. Fails if it was sent to a different email or has expired. */
+export async function getInvite(inviteId: string): Promise<InviteSummary> {
+  const invite = unwrap(await client.organization.getInvitation({ query: { id: inviteId } }));
+  return {
+    id: invite.id,
+    organisationName: invite.organizationName,
+    inviterEmail: invite.inviterEmail,
+    email: invite.email,
+    role: invite.role as OrgRole,
+  };
+}
+
+export async function acceptInvite(inviteId: string): Promise<void> {
+  unwrap(await client.organization.acceptInvitation({ invitationId: inviteId }));
+  organisationsChanged();
+}
+
+export async function declineInvite(inviteId: string): Promise<void> {
+  unwrap(await client.organization.rejectInvitation({ invitationId: inviteId }));
+}
+
+export async function updateMemberRole(organisationId: string, memberId: string, role: 'admin' | 'member'): Promise<void> {
+  unwrap(await client.organization.updateMemberRole({ organizationId: organisationId, memberId, role }));
+}
+
+export async function removeMember(organisationId: string, memberId: string): Promise<void> {
+  unwrap(await client.organization.removeMember({ organizationId: organisationId, memberIdOrEmail: memberId }));
+}
+
+export async function leaveOrganisation(organisationId: string): Promise<void> {
+  unwrap(await client.organization.leave({ organizationId: organisationId }));
+  organisationsChanged();
 }
 
 /**

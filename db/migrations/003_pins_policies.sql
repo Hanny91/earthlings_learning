@@ -43,7 +43,7 @@ create policy pins_insert on public.pins
         )
     );
 
--- Edit: the creator, or an owner/editor of the pin's organisation.
+-- Edit: the creator, or an owner/admin of the pin's organisation.
 -- The check also applies to the new row, so a pin can only be moved into an
 -- organisation the user belongs to.
 create policy pins_update on public.pins

@@ -17,7 +17,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] Memberships are in **`neon_auth.member`**, with columns **`"organizationId"`**, **`"userId"`** and **`"role"`**.
 - [ ] Organisations are in **`neon_auth.organization`**, with columns **`id`** and **`name`**.
 - [ ] IDs are compared as text (`::text`). That's fine whether they're text or uuid, but if they're uuid, consider storing `pins.created_by` / `organisation_id` as uuid too.
-- [ ] **Roles:** the plugin's default roles are owner/admin/member, but project.md uses owner/editor/member. `my_managed_org_ids()` currently accepts `owner`, `editor` and `admin`. Decide whether to add a custom "editor" role or treat admin as editor, then remove the one you don't use.
+- [ ] **Roles** are stored as the plugin's `owner`, `admin` and `member` strings in `neon_auth.member.role`. `my_managed_org_ids()` treats `owner` and `admin` as able to change any of the organisation's pins.
 
 ## Auth client (`map-app/src/auth.ts`)
 
@@ -26,6 +26,16 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **The token has an `exp` claim.** If it doesn't, the cache simply fetches a fresh token on every request, which still works but is slower.
 - [ ] **Email/password sign-up works as expected.** If email verification is turned on, sign-up won't return a session, and the user sees "Check your email to finish signing in".
 - [ ] **`client.organization.list()` returns the user's organisations** with `id` and `name`.
+
+## Organisations and invites (`map-app/src/auth.ts`, `OrganisationsDialog.tsx`, `AcceptInviteDialog.tsx`)
+
+- [ ] **You can create an organisation outside the app and be its owner**, through the Neon Auth console if it has one, or another route. There's no create form in the app yet.
+- [ ] **The organisation plugin's client methods exist with these names and shapes:** `getFullOrganization` (returning `members[].user.name/email` and `invitations[]`), `inviteMember`, `cancelInvitation`, `getInvitation`, `acceptInvitation`, `rejectInvitation`, `updateMemberRole`, `removeMember` and `leave`.
+- [ ] **`inviteMember` works with no email sending configured**: it creates the invite and returns its ID, rather than failing because there's no email sender set up.
+- [ ] **The server lets owners and admins** invite people, change roles and remove members, but not ordinary members.
+- [ ] **`getInvitation` only works for the signed-in invitee** whose email matches the invite. The accept screen relies on this and explains it when it fails.
+- [ ] **Invite expiry:** Better Auth's default is 48 hours. Check whether that's long enough for sending links by hand.
+- [ ] **The invite link** `https://earthlingslearning.co.uk/map/?invite=<id>` opens the app, and the `?invite=` part is removed from the address bar after accepting, declining or closing.
 
 ## Data API client (`map-app/src/pinsApi.ts`)
 

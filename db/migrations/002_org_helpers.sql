@@ -9,9 +9,8 @@
 -- "userId" and "role", and organisations in neon_auth.organization with "id"
 -- and "name". IDs are compared as text so this works whether they are text or uuid.
 --
--- The plugin's default roles are owner/admin/member; project.md uses
--- owner/editor/member, so "editor" needs adding as a custom role, or "admin"
--- treated as editor (both are accepted below).
+-- Roles are the plugin's built-in owner/admin/member. Owners and admins can
+-- change any of the organisation's pins.
 --
 -- These are SECURITY DEFINER so callers don't need direct access to the auth
 -- schema. They live in app_private, which the Data API doesn't expose.
@@ -31,7 +30,7 @@ as $$
     where m."userId"::text = auth.user_id();
 $$;
 
--- Organisations where the current user can change any pin (owner or editor).
+-- Organisations where the current user can change any pin (owner or admin).
 create function app_private.my_managed_org_ids()
 returns text[]
 language sql
@@ -42,7 +41,7 @@ as $$
     select coalesce(array_agg(m."organizationId"::text), '{}')
     from neon_auth.member m
     where m."userId"::text = auth.user_id()
-      and m.role in ('owner', 'editor', 'admin');
+      and m.role in ('owner', 'admin');
 $$;
 
 -- Organisation display name, so the map can label public pins for any viewer.

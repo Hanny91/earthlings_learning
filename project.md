@@ -37,7 +37,7 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 
 > **TODO:** confirm sign-in methods (email/password, magic link, OAuth providers).
 
-**Organisation invites (for the test run):** by hand. An owner creates an invite in the app and copies the link, then sends it themselves (e.g. WhatsApp or their own email). The invitee opens it, signs in or creates an account, and joins. Emailed invites come later with SMTP.
+**Organisations and invites (for the test run):** organisations are created by hand outside the app, and there is no "create organisation" form yet. The owner invites each organisation's first admin from the app's Organisations panel, and that admin invites everyone else. Invites are sent by hand: creating one gives a link (`/map/?invite=<id>`) that the inviter copies and sends themselves (e.g. WhatsApp or their own email). The invitee opens it, signs in or creates an account with the invited email address, and joins. Emailed invites come later with SMTP.
 
 ---
 
@@ -49,7 +49,7 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 ### Organisations and memberships
 - Provided by the organization plugin.
 - A user can belong to many organisations.
-- Membership role is one of `owner`, `editor`, `member`.
+- Membership role is one of `owner`, `admin`, `member` (the organization plugin's built-in roles). Admins can edit any of the organisation's pins and manage its members.
 
 ### Pins
 
@@ -74,7 +74,7 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
   - Caps the number of rows returned.
 
 ### Policies
-- Membership lookups for organisations are handled by policies (or helper functions) so pin policies can ask "is the current user a member / owner / editor of this organisation?"
+- Membership lookups for organisations are handled by policies (or helper functions) so pin policies can ask "is the current user a member / owner / admin of this organisation?"
 
 ---
 
@@ -82,7 +82,7 @@ The app lives at the `/map/` subpath of the main site (not a subdomain). The sit
 
 - **Read:** anyone, including logged-out visitors, sees public pins. Members of an organisation also see its `org_only` pins.
 - **Add:** any signed-in user can add a public pin anywhere. Only members can add pins to an organisation.
-- **Edit and delete:** the creator can change their own pins. An organisation's owners and editors can change any of its pins.
+- **Edit and delete:** the creator can change their own pins. An organisation's owners and admins can change any of its pins.
 - **Moderation:** deferred.
 
 These are enforced in RLS, not in the client. The client should never be the thing that decides who sees what.

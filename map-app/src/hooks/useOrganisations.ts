@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listMyOrganisations, type Organisation } from '../auth';
+import { listMyOrganisations, onOrganisationsChange, type Organisation } from '../auth';
 import { errorMessage } from '../errors';
 import { useAuth } from './useAuth';
 
@@ -38,5 +38,12 @@ export function useOrganisations(): OrganisationsState {
   }, [user?.id, version]);
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
+
+  // Accepting an invite or leaving an organisation anywhere in the app refreshes every list.
+  useEffect(() => {
+    const unsubscribe = onOrganisationsChange(reload);
+    return () => void unsubscribe();
+  }, [reload]);
+
   return { organisations, loading, error, reload };
 }
