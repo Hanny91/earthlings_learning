@@ -17,7 +17,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 - [x] Memberships are in **`neon_auth.member`**, with columns **`"organizationId"`**, **`"userId"`** and **`"role"`**. Confirmed: migration `002` applied.
 - [x] Organisations are in **`neon_auth.organization`**, with columns **`id`** and **`name`**. Confirmed: migration `002` applied.
-- [ ] IDs are compared as text (`::text`). That's fine whether they're text or uuid, but if they're uuid, consider storing `pins.created_by` / `organisation_id` as uuid too.
+- [x] IDs are compared as text (`::text`). Confirmed: Neon Auth's `organization.id`, `member."organizationId"` and `member."userId"` are `uuid`, with `id` defaulting to `gen_random_uuid()`. Storing `pins.created_by` / `organisation_id` as uuid would be tidier; it's optional, so consider it in a later migration.
 - [ ] **Roles** are stored as the plugin's `owner`, `admin` and `member` strings in `neon_auth.member.role`. `my_managed_org_ids()` treats `owner` and `admin` as able to change any of the organisation's pins.
 
 ## Auth client (`map-app/src/auth.ts`)
@@ -82,6 +82,10 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **The FTP upload excludes** `map-app/`, `db/` and the markdown docs, and uploads the built `map/` folder.
 - [ ] **The dev server still loads the app with the narrowed allow list** (`server.fs.allow: ['.', '../assets/images']` in [vite.config.ts](map-app/vite.config.ts)). Vite should resolve both entries from `map-app/`. If the page or Leaflet's CSS returns 403 in `npm run dev`, that resolution is the cause.
 - [ ] **Node 22 builds cleanly.** Locally you're on Node 20.12, which only gives engine warnings for some of `better-auth`'s dependencies.
+
+## Going public
+
+- [ ] **Remove `<meta name="robots" content="noindex">`** from [map-app/index.html](map-app/index.html) when the map should appear in search results. Add `/map/` to `sitemap.xml` and the site nav at the same time.
 
 ## Placeholders to replace
 
