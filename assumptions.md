@@ -6,16 +6,16 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 ## Neon setup
 
-- [ ] **Data API is enabled** on the database, so `auth.user_id()` and the `anonymous` / `authenticated` roles exist. Migrations `001` and `003` fail without them.
+- [ ] **Data API is enabled** on the database, so `auth.user_id()` and the `anonymous` / `authenticated` roles exist. `auth.user_id()` is confirmed, because migration `001` applied; the roles are confirmed once `003` applies.
 - [ ] **Data API trusts Neon Auth tokens**, so a signed-in request runs as `authenticated` with `auth.user_id()` set to the user's ID.
-- [ ] **Neon Auth is enabled with the organization plugin** before the first migration run. Migration `002` reads its tables, and Postgres checks they exist when it creates the functions.
+- [x] **Neon Auth is enabled with the organization plugin** before the first migration run. Migration `002` reads its tables, and Postgres checks they exist when it creates the functions.
 - [ ] **`https://earthlingslearning.co.uk` is in Neon Auth's trusted domains.**
 - [ ] **Cross-site sign-in works.** The auth server is on a Neon domain and the site is on earthlingslearning.co.uk, so the session cookie has to work across the two (`credentials: 'include'` in [auth.ts](map-app/src/auth.ts)). Check this in Safari as well, which blocks cross-site cookies by default.
 
 ## Auth tables (`db/migrations/002_org_helpers.sql`)
 
-- [ ] Memberships are in **`neon_auth.member`**, with columns **`"organizationId"`**, **`"userId"`** and **`"role"`**.
-- [ ] Organisations are in **`neon_auth.organization`**, with columns **`id`** and **`name`**.
+- [x] Memberships are in **`neon_auth.member`**, with columns **`"organizationId"`**, **`"userId"`** and **`"role"`**. Confirmed: migration `002` applied.
+- [x] Organisations are in **`neon_auth.organization`**, with columns **`id`** and **`name`**. Confirmed: migration `002` applied.
 - [ ] IDs are compared as text (`::text`). That's fine whether they're text or uuid, but if they're uuid, consider storing `pins.created_by` / `organisation_id` as uuid too.
 - [ ] **Roles** are stored as the plugin's `owner`, `admin` and `member` strings in `neon_auth.member.role`. `my_managed_org_ids()` treats `owner` and `admin` as able to change any of the organisation's pins.
 

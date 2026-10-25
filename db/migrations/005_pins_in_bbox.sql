@@ -39,7 +39,7 @@ as $$
         p.notes,
         coalesce(
             p.created_by = (select auth.user_id())
-            or p.organisation_id = any ((select app_private.my_managed_org_ids())),
+            or p.organisation_id = any ((select app_private.my_managed_org_ids())::text[]),
             false
         ),
         p.created_at,

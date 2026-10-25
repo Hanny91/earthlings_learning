@@ -6,6 +6,8 @@
 --
 -- Function calls are wrapped in (select ...) so each is evaluated once per
 -- query, not once per row. A null organisation_id never matches `= any`.
+-- The ::text[] cast matters: without it, `any ((select ...))` is read as
+-- "any row of this subquery" and compares text with the whole array.
 
 alter table public.pins enable row level security;
 
@@ -28,7 +30,7 @@ create policy pins_select on public.pins
     using (
         visibility = 'public'
         or created_by = (select auth.user_id())
-        or organisation_id = any ((select app_private.my_org_ids()))
+        or organisation_id = any ((select app_private.my_org_ids())::text[])
     );
 
 -- Add: any signed-in user, as themselves. Organisation pins need membership.
@@ -39,7 +41,7 @@ create policy pins_insert on public.pins
         created_by = (select auth.user_id())
         and (
             organisation_id is null
-            or organisation_id = any ((select app_private.my_org_ids()))
+            or organisation_id = any ((select app_private.my_org_ids())::text[])
         )
     );
 
@@ -51,16 +53,16 @@ create policy pins_update on public.pins
     to authenticated
     using (
         created_by = (select auth.user_id())
-        or organisation_id = any ((select app_private.my_managed_org_ids()))
+        or organisation_id = any ((select app_private.my_managed_org_ids())::text[])
     )
     with check (
         (
             organisation_id is null
-            or organisation_id = any ((select app_private.my_org_ids()))
+            or organisation_id = any ((select app_private.my_org_ids())::text[])
         )
         and (
             created_by = (select auth.user_id())
-            or organisation_id = any ((select app_private.my_managed_org_ids()))
+            or organisation_id = any ((select app_private.my_managed_org_ids())::text[])
         )
     );
 
@@ -70,5 +72,5 @@ create policy pins_delete on public.pins
     to authenticated
     using (
         created_by = (select auth.user_id())
-        or organisation_id = any ((select app_private.my_managed_org_ids()))
+        or organisation_id = any ((select app_private.my_managed_org_ids())::text[])
     );
