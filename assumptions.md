@@ -76,20 +76,20 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 ## Aerial photos (`db/migrations/008_map_images.sql`, `map-app/src/imagesApi.ts`)
 
-Phase 1 of [photos.md](photos.md). Test with `npm run dev`: sign in on the map, then open `http://localhost:5173/map/photo-test.html`. You need to be an owner or admin of an organisation.
+Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now removed. The open items below can be checked once the upload form exists (phase 5).
 
-- [ ] **Neon's maximum upload size.** Neon doesn't publish one. Upload JPEGs of about 1, 2 and 4 MB on the test page (base64 makes the request about a third bigger, so a 4 MB file is a ~5.4 MB request). Note the largest that works. A file over 4 MB should fail with code `23514` (the table's own limit). A `413`, or a failure on a smaller file, means Neon's limit is lower, and uploads need splitting into pieces (see photos.md).
+- [x] **Neon accepts uploads up to the table's 4 MB limit.** Confirmed: a 3.89 MB JPEG (a ~5.2 MB base64 request) uploaded and came back intact; a 4.20 MB one was refused by the table with code `23514`, not by Neon. Neon's own limit is somewhere above that, so uploads don't need splitting.
 - [x] **`"*/*"` downloads don't work on Neon.** `008`'s `map_image_file` returned a 0.67 MB JPEG as 1.69 MB of unusable data, so raw binary doesn't survive the Data API. `009` replaces it with `map_image_base64`, which returns base64 text in JSON (about a third bigger), and the browser turns it back into a JPEG.
-- [ ] **Base64 downloads work**: on the test page, the thumbnail shows and "Same size back?" says Yes after `009`.
+- [x] **Base64 downloads work.** Confirmed after `009`: the 0.67 MB test photo came back the same size and the thumbnail showed, so the upload was intact too.
 - [x] **The Data API honours `Cache-Control`** from `set_config('response.headers', ...)`. Confirmed on `map_image_file`; `map_image_base64` sets the same header.
 - [ ] **The browser reuses the cached download** on a later page load (the Network tab shows "(disk cache)" for `map_image_base64`). It may not, because the request carries a login token; that only costs a re-download per visit.
 - [ ] **A missing photo returns 404.** `map_image_base64` raises `P0002`, which PostgREST turns into a 404.
-- [ ] **`notify pgrst, 'reload schema'`** at the end of `008` makes the new table and functions visible straight away. If they 404 after migrating, refresh the schema in the Neon console.
-- [ ] **Upload and download times** are acceptable on a normal connection for a ~3 MB photo.
+- [x] **`notify pgrst, 'reload schema'` does nothing on Neon.** After `009`, the new function gave `PGRST202` ("Could not find the function … in the schema cache") until the schema was refreshed in the Neon console. After every migration that adds or changes tables or functions, refresh the schema on the Data API page.
+- [x] **Upload and download times** are acceptable: 4.7 s up and 3.2 s down for the 3.89 MB photo. Phase 2's compression aims for 3 MB or less, so real uploads will be quicker.
 - [ ] **The 10-per-organisation limit** gives the friendly "already has the most photos" message (hint `photo_limit`) on the 11th upload, and holds when two uploads happen at once (an advisory lock serialises them).
-- [ ] **Only owners and admins can upload.** An ordinary member gets a permission error on the test page.
-- [ ] **Safari's `canvas.toBlob('image/jpeg')`** produces a JPEG at the requested quality. Phase 2 relies on this; the test page uploads files as they are.
-- [ ] **Remove the test page** (`map-app/photo-test.html`, `map-app/src/photoTest.tsx`) after phase 1. It's not in the production build, but it isn't meant to stay.
+- [ ] **Only owners and admins can upload.** An ordinary member gets a permission error when uploading.
+- [ ] **Safari's `canvas.toBlob('image/jpeg')`** produces a JPEG at the requested quality. Phase 2 relies on this.
+- [x] **The test page is removed** (`map-app/photo-test.html`, `map-app/src/photoTest.tsx`).
 
 ## Build and deploy
 
