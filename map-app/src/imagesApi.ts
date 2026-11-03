@@ -2,7 +2,7 @@
 // live in Neon for now; moving them to R2 later should only change this file.
 // RLS decides who can see and change each photo (008_map_images.sql).
 
-import { ApiError, request, requestBlob } from './dataApi';
+import { ApiError, request } from './dataApi';
 
 export interface MapImageUpload {
   organisationId: string;
@@ -44,13 +44,18 @@ const imageUrls = new Map<number, Promise<string>>();
 
 /**
  * A URL for the photo that works in <img> and Leaflet overlays. The download
- * needs the user's token, which an <img src> can't send, so the bytes are
+ * needs the user's token, which an <img src> can't send, so the photo is
  * fetched here and handed over as a local blob URL.
+ *
+ * It arrives as base64 because Neon's Data API doesn't pass raw bytes through
+ * intact (see 009_map_image_base64.sql).
  */
 export function getImageUrl(id: number): Promise<string> {
   let url = imageUrls.get(id);
   if (!url) {
-    url = requestBlob(`/rpc/map_image_file?image_id=${id}`, 'image/jpeg').then((blob) => URL.createObjectURL(blob));
+    url = request<string>('GET', `/rpc/map_image_base64?image_id=${id}`)
+      .then(fromBase64)
+      .then((blob) => URL.createObjectURL(blob));
     // A failed download shouldn't stick; the next call tries again.
     url.catch(() => imageUrls.delete(id));
     imageUrls.set(id, url);
@@ -62,6 +67,12 @@ export function getImageUrl(id: number): Promise<string> {
 export function forgetImageUrl(id: number): void {
   imageUrls.get(id)?.then((url) => URL.revokeObjectURL(url), () => {});
   imageUrls.delete(id);
+}
+
+// fetch() decodes a data URL without building the bytes by hand.
+async function fromBase64(base64: string): Promise<Blob> {
+  const response = await fetch(`data:image/jpeg;base64,${base64}`);
+  return response.blob();
 }
 
 // FileReader handles large files without building a huge string by hand.

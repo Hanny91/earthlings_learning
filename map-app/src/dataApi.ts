@@ -30,18 +30,12 @@ interface RequestOptions {
 
 /** A JSON request. Errors come back as ApiError with a readable message. */
 export async function request<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await send(method, path, 'application/json', options);
+  const response = await send(method, path, options);
   return (response.status === 204 ? [] : await response.json()) as T;
 }
 
-/** A request whose response is a file rather than JSON. */
-export async function requestBlob(path: string, accept: string, signal?: AbortSignal): Promise<Blob> {
-  const response = await send('GET', path, accept, { signal });
-  return response.blob();
-}
-
-async function send(method: Method, path: string, accept: string, options: RequestOptions): Promise<Response> {
-  const headers: Record<string, string> = { Accept: accept };
+async function send(method: Method, path: string, options: RequestOptions): Promise<Response> {
+  const headers: Record<string, string> = { Accept: 'application/json' };
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   if (options.returnRows) headers.Prefer = 'return=representation';
 

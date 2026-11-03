@@ -30,7 +30,7 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 | `footprint` | geometry (polygon) | The corners as a map shape with a spatial index, so "which photos are in view?" is quick. Set automatically from `corners`, so the two can't disagree. |
 | `storage_key` | text, empty for now | The photo's location in R2 once it moves there. |
 | `created_at` | timestamptz | When it was uploaded. |
-| `updated_at` | timestamptz | When it last changed. The app also uses it to tell when to download a fresh copy instead of reusing a saved one. |
+| `updated_at` | timestamptz | When it last changed, e.g. after re-aligning. The photo's bytes never change, so downloads don't depend on it. |
 
 **Rules on the table:**
 - Each row has either `data` or a `storage_key`, so a photo is always stored somewhere.
@@ -44,7 +44,7 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 **Migration `008_map_images.sql`:** the table, rules, indexes, row-level security, grants and three functions:
 - `upload_map_image(org_id, title, captured_on, image_base64, width, height)`. Base64 makes the upload about a third bigger, but it's ordinary JSON and avoids custom headers the Data API's CORS settings might block. Uploads are occasional, so the extra size doesn't matter.
 - `map_images_in_bbox(min_lng, min_lat, max_lng, max_lat)`. Returns details and corners for the aligned photos in view, without the image data.
-- `map_image_file(id)`. Returns the bytes as a `"*/*"` type, setting `Content-Type` and `Cache-Control: private`.
+- `map_image_base64(id)` (added in `009`). Returns the photo as base64 text and sets `Cache-Control: private`. `008` first tried returning raw bytes through a `"*/*"` type, but Neon's Data API doesn't pass them through intact.
 
 **Test before building anything else.** Upload real compressed photos of about 1, 2 and 4 MB, then download them again. Neon doesn't publish a maximum request size. If larger uploads are rejected, the fallback is splitting uploads into pieces in a `map_image_chunks` table. That's more work for the upload, but the rest of this plan stays the same.
 
@@ -60,7 +60,7 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 ## Phase 3: API module (`map-app/src/imagesApi.ts`)
 
 - The only file that touches image storage, as `pinsApi.ts` is for pins. It shares that file's request and error handling rather than copying it.
-- `getImageUrl(id, updatedAt)` downloads the image with the login token (an `<img src>` can't send one), turns it into a temporary browser link, and keeps it in memory so panning the map doesn't re-download it. Moving to R2 later only changes this function.
+- `getImageUrl(id)` downloads the image with the login token (an `<img src>` can't send one), turns the base64 back into a JPEG and then into a temporary browser link, and keeps it in memory so panning the map doesn't re-download it. Moving to R2 later only changes this function.
 
 ## Phase 4: Alignment screen (`AlignImageDialog.tsx`, `map-app/src/georef.ts`)
 
@@ -87,8 +87,8 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 ## Add to `assumptions.md` as we go
 
 - Neon's maximum request size for uploads.
-- `"*/*"` binary downloads and `set_config('response.headers', ...)` work on Neon's Data API.
-- Neon's Data API honours the `Cache-Control` header set by `map_image_file`.
+- ~~`"*/*"` binary downloads work on Neon's Data API.~~ They don't; downloads use base64 instead (`009`).
+- ~~Neon's Data API honours the `Cache-Control` header.~~ Confirmed.
 - `NOTIFY pgrst, 'reload schema'` is needed after the migration.
 - Safari's `canvas.toBlob('image/jpeg')` produces a JPEG at the requested quality.
 - The 10-per-organisation limit is enforced even when two uploads happen at once.

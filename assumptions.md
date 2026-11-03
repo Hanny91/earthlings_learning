@@ -79,9 +79,11 @@ Things the survey map code assumes but that couldn't be confirmed while building
 Phase 1 of [photos.md](photos.md). Test with `npm run dev`: sign in on the map, then open `http://localhost:5173/map/photo-test.html`. You need to be an owner or admin of an organisation.
 
 - [ ] **Neon's maximum upload size.** Neon doesn't publish one. Upload JPEGs of about 1, 2 and 4 MB on the test page (base64 makes the request about a third bigger, so a 4 MB file is a ~5.4 MB request). Note the largest that works. A file over 4 MB should fail with code `23514` (the table's own limit). A `413`, or a failure on a smaller file, means Neon's limit is lower, and uploads need splitting into pieces (see photos.md).
-- [ ] **`"*/*"` downloads work on Neon**: `map_image_file` returns the raw JPEG with the `Content-Type` it sets, not JSON or base64. On the test page, the thumbnail shows and "Same size back?" says Yes.
-- [ ] **The Data API honours `Cache-Control`** from `set_config('response.headers', ...)`. In the browser's Network tab, the `map_image_file` response should show `Cache-Control: private, max-age=31536000, immutable`.
-- [ ] **A missing photo returns 404.** `map_image_file` raises `P0002`, which PostgREST turns into a 404.
+- [x] **`"*/*"` downloads don't work on Neon.** `008`'s `map_image_file` returned a 0.67 MB JPEG as 1.69 MB of unusable data, so raw binary doesn't survive the Data API. `009` replaces it with `map_image_base64`, which returns base64 text in JSON (about a third bigger), and the browser turns it back into a JPEG.
+- [ ] **Base64 downloads work**: on the test page, the thumbnail shows and "Same size back?" says Yes after `009`.
+- [x] **The Data API honours `Cache-Control`** from `set_config('response.headers', ...)`. Confirmed on `map_image_file`; `map_image_base64` sets the same header.
+- [ ] **The browser reuses the cached download** on a later page load (the Network tab shows "(disk cache)" for `map_image_base64`). It may not, because the request carries a login token; that only costs a re-download per visit.
+- [ ] **A missing photo returns 404.** `map_image_base64` raises `P0002`, which PostgREST turns into a 404.
 - [ ] **`notify pgrst, 'reload schema'`** at the end of `008` makes the new table and functions visible straight away. If they 404 after migrating, refresh the schema in the Neon console.
 - [ ] **Upload and download times** are acceptable on a normal connection for a ~3 MB photo.
 - [ ] **The 10-per-organisation limit** gives the friendly "already has the most photos" message (hint `photo_limit`) on the 11th upload, and holds when two uploads happen at once (an advisory lock serialises them).
