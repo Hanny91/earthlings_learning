@@ -40,7 +40,11 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **`inviteMember` works with no email sending configured**: it creates the invite and returns its ID, rather than failing because there's no email sender set up.
 - [ ] **The server lets owners and admins** invite people, change roles and remove members, but not ordinary members.
 - [ ] **`getInvitation` only works for the signed-in invitee** whose email matches the invite. The accept screen relies on this and explains it when it fails.
-- [ ] **Invite expiry:** Better Auth's default is 48 hours. Check whether that's long enough for sending links by hand.
+- [ ] **Invite expiry is 30 days** (migration `010`, a trigger that overwrites Neon Auth's 48-hour default). Check that:
+  - Invites live in `neon_auth.invitation` with camelCase `"expiresAt"` and `"status"` columns.
+  - The migration role can create a trigger on that table. 006 found the owner can't grant on Neon's `auth` schema, so this may be refused too.
+  - A new invite shows "expires" about 30 days out in the Organisations panel, and an invite older than 48 hours can still be accepted.
+  - The trigger is still there after Neon updates Neon Auth.
 - [ ] **The invite link** `https://earthlingslearning.co.uk/map/?invite=<id>` opens the app, and the `?invite=` part is removed from the address bar after accepting, declining or closing.
 
 ## Data API client (`map-app/src/pinsApi.ts`)
