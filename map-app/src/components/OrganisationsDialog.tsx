@@ -16,6 +16,7 @@ import { ROLE_LABELS } from '../roles';
 import { CopyLink } from './CopyLink';
 import { Dialog } from './Dialog';
 import { useNotice } from './Notices';
+import { OrganisationPhotos } from './OrganisationPhotos';
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
@@ -188,6 +189,8 @@ function OrganisationDetail({ organisationId, onBack }: { organisationId: string
           </section>
 
           <InviteForm organisationId={details.id} onInvited={load} />
+
+          <OrganisationPhotos organisationId={details.id} />
         </>
       )}
 

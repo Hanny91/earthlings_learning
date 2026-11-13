@@ -56,6 +56,7 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 - JPEG, not WebP: Safari quietly saves a PNG when asked for WebP, which would be bigger.
 - Redrawing strips EXIF data, including the drone's GPS position, which is good for privacy.
 - Show the before and after size ("18.4 MB → 2.1 MB") before uploading.
+- **Upload form, brought forward from phase 5:** an "Aerial photos" section on an organisation's page in the Organisations dialog, for owners and admins. It has a file picker, title (started from the file name), optional date taken, the before/after size with a preview, and a list of the organisation's photos with Delete and how many of the 10 are used. Re-align buttons come with phase 4.
 
 ## Phase 3: API module (`map-app/src/imagesApi.ts`)
 
@@ -77,7 +78,7 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 - A small custom Leaflet layer places the `<img>` by its four corners with a CSS `matrix3d` transform, recalculated on zoom and pan. Plugins do the same thing; ours is about 100 lines with no dependency.
 - A new **`aerial` pane at z 220**, between the base map (200) and the geology layer (250), so pins and data layers stay on top. Add it to the layer list in `layers.ts`.
 - An "Aerial photos" switch (off by default, remembered per device) and an opacity control. Photos load only when in view.
-- The organisation's management area lists its photos with re-align and delete.
+- Add re-align to the organisation's photo list (the list, upload and delete already exist from phase 2).
 
 ## Things to tell users
 

@@ -40,7 +40,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **`inviteMember` works with no email sending configured**: it creates the invite and returns its ID, rather than failing because there's no email sender set up.
 - [ ] **The server lets owners and admins** invite people, change roles and remove members, but not ordinary members.
 - [ ] **`getInvitation` only works for the signed-in invitee** whose email matches the invite. The accept screen relies on this and explains it when it fails.
-- [ ] **Invite expiry is 30 days** (migration `010`, a trigger that overwrites Neon Auth's 48-hour default). Check that:
+- [x] **Invite expiry is 30 days** (migration `010`, a trigger that overwrites Neon Auth's 48-hour default). Check that:
   - Invites live in `neon_auth.invitation` with camelCase `"expiresAt"` and `"status"` columns.
   - The migration role can create a trigger on that table. 006 found the owner can't grant on Neon's `auth` schema, so this may be refused too.
   - A new invite shows "expires" about 30 days out in the Organisations panel, and an invite older than 48 hours can still be accepted.
@@ -80,7 +80,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 ## Aerial photos (`db/migrations/008_map_images.sql`, `map-app/src/imagesApi.ts`)
 
-Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now removed. The open items below can be checked once the upload form exists (phase 5).
+Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now removed. Phase 2 added the real upload form: **Organisations → (an organisation) → Aerial photos**, shown to owners and admins.
 
 - [x] **Neon accepts uploads up to the table's 4 MB limit.** Confirmed: a 3.89 MB JPEG (a ~5.2 MB base64 request) uploaded and came back intact; a 4.20 MB one was refused by the table with code `23514`, not by Neon. Neon's own limit is somewhere above that, so uploads don't need splitting.
 - [x] **`"*/*"` downloads don't work on Neon.** `008`'s `map_image_file` returned a 0.67 MB JPEG as 1.69 MB of unusable data, so raw binary doesn't survive the Data API. `009` replaces it with `map_image_base64`, which returns base64 text in JSON (about a third bigger), and the browser turns it back into a JPEG.
@@ -91,8 +91,13 @@ Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now r
 - [x] **`notify pgrst, 'reload schema'` does nothing on Neon.** After `009`, the new function gave `PGRST202` ("Could not find the function … in the schema cache") until the schema was refreshed in the Neon console. After every migration that adds or changes tables or functions, refresh the schema on the Data API page.
 - [x] **Upload and download times** are acceptable: 4.7 s up and 3.2 s down for the 3.89 MB photo. Phase 2's compression aims for 3 MB or less, so real uploads will be quicker.
 - [ ] **The 10-per-organisation limit** gives the friendly "already has the most photos" message (hint `photo_limit`) on the 11th upload, and holds when two uploads happen at once (an advisory lock serialises them).
-- [ ] **Only owners and admins can upload.** An ordinary member gets a permission error when uploading.
-- [ ] **Safari's `canvas.toBlob('image/jpeg')`** produces a JPEG at the requested quality. Phase 2 relies on this.
+- [ ] **Only owners and admins can upload.** The Aerial photos section is hidden from ordinary members, so this only matters if the database rule is wrong. To check the rule itself, a member would need to call `upload_map_image` directly (e.g. from the browser console); it should fail with a permission error.
+- [ ] **Safari's `canvas.toBlob('image/jpeg')`** produces a JPEG at the requested quality ([imageCompress.ts](map-app/src/imageCompress.ts)). If it doesn't, the form says the browser "couldn't save the photo as a JPEG" rather than uploading the wrong thing.
+- [x] **Photos come out the right way up.** `createImageBitmap(file, { imageOrientation: 'from-image' })` follows the camera's orientation data. Check with a phone photo taken in portrait.
+- [ ] **Large drone photos compress on the devices admins use.** A 48-megapixel photo needs a few hundred MB of memory while being read. Fine on a computer; a phone may fail with "too large for this device to process".
+- [ ] **Compression lands where photos.md expects:** a typical drone photo comes out at 4000px and 1–3 MB. The form shows the before and after size.
+- [ ] **Location data is removed.** Re-saving through a canvas drops EXIF, including GPS. Check by downloading an uploaded photo and looking at its properties (in Windows: right-click → Properties → Details): there should be no GPS section.
+- [ ] **HEIC photos** (iPhone default) get a readable "save it as a JPEG" message in Chrome and Firefox, which can't read them. Safari can, so they should just work there.
 - [x] **The test page is removed** (`map-app/photo-test.html`, `map-app/src/photoTest.tsx`).
 
 ## Build and deploy

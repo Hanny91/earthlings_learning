@@ -15,6 +15,49 @@ export interface MapImageUpload {
   height: number;
 }
 
+export interface MapImageSummary {
+  id: number;
+  title: string;
+  capturedOn: string | null;
+  byteSize: number;
+  width: number;
+  height: number;
+  /** False until the photo has been lined up with the map. */
+  aligned: boolean;
+  createdAt: string;
+}
+
+interface MapImageSummaryRow {
+  id: number;
+  title: string;
+  captured_on: string | null;
+  byte_size: number;
+  width: number;
+  height: number;
+  corners: unknown;
+  created_at: string;
+}
+
+/** An organisation's photos, aligned or not, newest upload first. Members only. */
+export async function listOrganisationImages(organisationId: string): Promise<MapImageSummary[]> {
+  const params = new URLSearchParams({
+    organisation_id: `eq.${organisationId}`,
+    select: 'id,title,captured_on,byte_size,width,height,corners,created_at',
+    order: 'created_at.desc',
+  });
+  const rows = await request<MapImageSummaryRow[]>('GET', `/map_images?${params}`);
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    capturedOn: row.captured_on,
+    byteSize: row.byte_size,
+    width: row.width,
+    height: row.height,
+    aligned: row.corners !== null,
+    createdAt: row.created_at,
+  }));
+}
+
 /** Uploads a photo for an organisation the user manages and returns its ID. */
 export async function uploadMapImage(upload: MapImageUpload): Promise<number> {
   return request<number>('POST', '/rpc/upload_map_image', {
