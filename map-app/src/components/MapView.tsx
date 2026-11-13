@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
 import { SurveyMap } from '../map';
 import type { Pin } from '../pinsApi';
+import type { MapViewState } from './AlignPhotoDialog';
 import { useNotice } from './Notices';
 import { PinPopup } from './PinPopup';
 
@@ -16,6 +17,8 @@ interface MapViewProps {
   onAddPin: (latlng: L.LatLng) => void;
   onEditPin: (pin: Pin) => void;
   onDeletePin: (pin: Pin) => void;
+  /** Called after each pan or zoom, e.g. so lining up a photo can start in the same place. */
+  onViewChange?: (view: MapViewState) => void;
 }
 
 type PopupTarget = { kind: 'pin'; pin: Pin } | { kind: 'new'; latlng: L.LatLng };
@@ -26,7 +29,7 @@ interface OpenPopup {
   target: PopupTarget;
 }
 
-export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapViewProps) {
+export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin, onViewChange }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<SurveyMap | null>(null);
   const [openPopup, setOpenPopup] = useState<OpenPopup | null>(null);
@@ -34,8 +37,8 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
   const notice = useNotice();
 
   // SurveyMap is created once, so it calls through this ref to get the latest props.
-  const handlers = useRef({ onAddPin, onEditPin, onDeletePin, notice });
-  handlers.current = { onAddPin, onEditPin, onDeletePin, notice };
+  const handlers = useRef({ onAddPin, onEditPin, onDeletePin, onViewChange, notice });
+  handlers.current = { onAddPin, onEditPin, onDeletePin, onViewChange, notice };
   const lastLoadError = useRef<string | null>(null);
 
   useEffect(() => {
@@ -65,6 +68,10 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
       if (pin && element instanceof HTMLElement) {
         setOpenPopup({ popup: event.popup, element, target: { kind: 'pin', pin } });
       }
+    });
+    surveyMap.map.on('moveend', () => {
+      const center = surveyMap.map.getCenter();
+      handlers.current.onViewChange?.({ lat: center.lat, lng: center.lng, zoom: surveyMap.map.getZoom() });
     });
     surveyMap.map.on('popupclose', (event: L.PopupEvent) => {
       setOpenPopup((current) => (current?.popup === event.popup ? null : current));

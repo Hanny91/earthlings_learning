@@ -484,3 +484,225 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 6px;
 }
+
+.aerial-image {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none !important; /* Leaflet's container styles would otherwise shrink it */
+  transform-origin: 0 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Full-screen dialog (lining up photos) */
+
+.dialog--full {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.dialog--full[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog--full .dialog__header {
+  margin-bottom: 0.5rem;
+}
+
+/* Alignment screen */
+
+.align {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.align__tabs {
+  display: none;
+  gap: 0.25rem;
+}
+
+.align__tab {
+  flex: 1;
+  font: inherit;
+  color: inherit;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem;
+  cursor: pointer;
+}
+
+.align__tab--active {
+  border-color: var(--color-accent-primary);
+  font-weight: bold;
+}
+
+.align__panes {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.align__pane {
+  min-height: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.align__view {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* The photo side has no tiles, so give it a neutral background. */
+.align__pane:first-child .align__view {
+  background: #e8e4da;
+}
+
+.align__panel {
+  max-height: 40vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.align__instruction {
+  margin: 0;
+  font-weight: bold;
+}
+
+.align__status,
+.align__note {
+  margin: 0;
+  color: var(--color-accent-dark);
+}
+
+.align__points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+
+.align__point {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.align__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--color-primary-medium);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.align__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.align__opacity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.align-marker span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-primary-medium);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  font: bold 13px/1 var(--font-primary);
+  box-sizing: border-box;
+}
+
+/* Error colours, shared by the markers and the numbers in the points list. */
+.align__number.align-error--ok,
+.align-marker.align-error--ok span {
+  background: #2e7d6b;
+}
+
+.align__number.align-error--warn,
+.align-marker.align-error--warn span {
+  background: #c79a1e;
+}
+
+.align__number.align-error--bad,
+.align-marker.align-error--bad span {
+  background: var(--color-danger);
+}
+
+.align-marker--pending span {
+  background: #ffffff;
+  color: var(--color-primary-dark);
+  border-color: var(--color-accent-primary);
+  border-width: 3px;
+}
+
+@media (max-width: 767px) {
+  .align__tabs {
+    display: flex;
+  }
+
+  .align__panes {
+    grid-template-columns: 1fr;
+  }
+
+  .align__pane:not(.align__pane--active) {
+    display: none;
+  }
+}
+
+/* Aerial photos switch (map control) */
+
+.aerial-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.aerial-control__opacity {
+  width: 100%;
+}
+
+.aerial-control__hint {
+  font-size: 0.8rem;
+  color: var(--color-accent-dark);
+}

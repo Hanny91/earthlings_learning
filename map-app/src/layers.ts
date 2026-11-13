@@ -1,17 +1,20 @@
 // Map layers, bottom to top (see project.md):
 //   1. Thunderforest Landscape base map  -> Leaflet's tilePane (z 200)
+//   1b. Organisations' aerial photos     -> "aerial" pane      (z 220)
 //   2. Soil parent material/hydrogeology -> "geology" pane     (z 250)
 //   3. Rivers                            -> "rivers" pane      (z 300)
 //   4. Defra / MAGIC layers              -> "magic" pane       (z 350)
 //   5. Pins                              -> Leaflet's overlayPane (z 400)
 //
-// The overlay layers (2-4) are a later job. The panes exist now so each layer
-// only needs `pane: '<name>'` to land in the right place.
+// Aerial photos are drawn by map.ts. The other overlay layers (2-4) are a
+// later job. The panes exist now so each layer only needs `pane: '<name>'` to
+// land in the right place.
 
 import L from 'leaflet';
 import { config } from './config';
 
 export const OVERLAY_PANES = {
+  aerial: 220,
   geology: 250,
   rivers: 300,
   magic: 350,

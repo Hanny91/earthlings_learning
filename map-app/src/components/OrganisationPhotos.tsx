@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { errorMessage } from '../errors';
 import { compressImage, formatBytes, type CompressedImage } from '../imageCompress';
-import { deleteMapImage, listOrganisationImages, uploadMapImage, type MapImageSummary } from '../imagesApi';
+import { deleteMapImage, forgetImageUrl, listOrganisationImages, uploadMapImage, type MapImageSummary } from '../imagesApi';
 import { useNotice } from './Notices';
 
 /** Matches the limit in 008_map_images.sql. */
@@ -10,11 +10,23 @@ const MAX_PHOTOS = 10;
 // captured_on is a plain date, which new Date() reads as midnight UTC, so format it in UTC too.
 const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
+/** The photo to open in the alignment screen. */
+export interface PhotoToAlign {
+  id: number;
+  title: string;
+}
+
+interface OrganisationPhotosProps {
+  organisationId: string;
+  /** Opens the alignment screen. Also called straight after an upload. */
+  onAlign: (photo: PhotoToAlign) => void;
+}
+
 /**
- * An organisation's aerial photos, with upload and delete. Shown to owners and
- * admins only; the database's RLS makes the real decision.
+ * An organisation's aerial photos, with upload, line up and delete. Shown to
+ * owners and admins only; the database's RLS makes the real decision.
  */
-export function OrganisationPhotos({ organisationId }: { organisationId: string }) {
+export function OrganisationPhotos({ organisationId, onAlign }: OrganisationPhotosProps) {
   const notice = useNotice();
   const [photos, setPhotos] = useState<MapImageSummary[] | null>(null);
   const [error, setError] = useState('');
@@ -36,6 +48,7 @@ export function OrganisationPhotos({ organisationId }: { organisationId: string 
     if (!window.confirm(`Delete “${photo.title}”? This can’t be undone.`)) return;
     try {
       await deleteMapImage(photo.id);
+      forgetImageUrl(photo.id);
       notice('Photo deleted.');
     } catch (err) {
       notice(errorMessage(err), 'error');
@@ -64,6 +77,9 @@ export function OrganisationPhotos({ organisationId }: { organisationId: string 
                       {photo.aligned ? '' : ' · Not lined up with the map yet'}
                     </span>
                   </span>
+                  <button type="button" className="button button--small" onClick={() => onAlign(photo)}>
+                    {photo.aligned ? 'Re-align' : 'Line up'}
+                  </button>
                   <button
                     type="button"
                     className="button button--small button--danger"
@@ -78,14 +94,14 @@ export function OrganisationPhotos({ organisationId }: { organisationId: string 
           <p className="org-detail__empty">
             {photos.length} of {MAX_PHOTOS} photos used.
           </p>
-          {photos.length < MAX_PHOTOS && <UploadPhotoForm organisationId={organisationId} onUploaded={load} />}
+          {photos.length < MAX_PHOTOS && <UploadPhotoForm organisationId={organisationId} onUploaded={onAlign} />}
         </>
       )}
     </section>
   );
 }
 
-function UploadPhotoForm({ organisationId, onUploaded }: { organisationId: string; onUploaded: () => Promise<void> }) {
+function UploadPhotoForm({ organisationId, onUploaded }: { organisationId: string; onUploaded: (photo: PhotoToAlign) => void }) {
   const notice = useNotice();
   const [compressed, setCompressed] = useState<CompressedImage | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -129,7 +145,7 @@ function UploadPhotoForm({ organisationId, onUploaded }: { organisationId: strin
     setError('');
     setStatus('uploading');
     try {
-      await uploadMapImage({
+      const id = await uploadMapImage({
         organisationId,
         title: title.trim(),
         capturedOn: capturedOn || null,
@@ -137,13 +153,14 @@ function UploadPhotoForm({ organisationId, onUploaded }: { organisationId: strin
         width: compressed.width,
         height: compressed.height,
       });
-      notice('Photo uploaded.');
+      notice('Photo uploaded. Now line it up with the map.');
       setCompressed(null);
       setPreviewUrl('');
       setTitle('');
       setCapturedOn('');
       setInputKey((key) => key + 1);
-      await onUploaded();
+      // A photo is no use until it's lined up, so go straight there. The list reloads on the way back.
+      onUploaded({ id, title: title.trim() });
     } catch (err) {
       setError(errorMessage(err));
     } finally {

@@ -100,6 +100,21 @@ Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now r
 - [ ] **HEIC photos** (iPhone default) get a readable "save it as a JPEG" message in Chrome and Firefox, which can't read them. Safari can, so they should just work there.
 - [x] **The test page is removed** (`map-app/photo-test.html`, `map-app/src/photoTest.tsx`).
 
+## Lining up photos (`map-app/src/components/AlignPhotoDialog.tsx`, `georef.ts`, `AerialImageLayer.ts`)
+
+Phases 3 and 4 of [photos.md](photos.md). Open it from **Organisations → (an organisation) → Aerial photos → Line up**, or upload a photo, which goes straight there.
+
+- [ ] **Saving an alignment works through the Data API**: `PATCH /map_images` with `control_points` and `corners` succeeds for owners and admins, and the photo then shows **Re-align** instead of **Line up**.
+- [ ] **The database accepts the corners the app sends** and builds the footprint (`map_images_before_write` in `008`). A refusal shows "The points don't agree with each other".
+- [ ] **Re-align starts from the saved points**, with the map on the photo's position.
+- [ ] **The preview lines up with the map** at every zoom level and doesn't drift when panning. It hides during the zoom animation and reappears in place, which is expected.
+- [ ] **Angled photos bend correctly.** With 6 or more points on an angled photo, the status says "fitted as an angled photo" and the preview's far edge is wider than its near edge.
+- [ ] **Error numbers are believable.** A careful alignment should read around 1–2 m. Deliberately drag one map marker about 10 m away: its number should jump to roughly 10 m. With only 4–5 points a neighbouring point can read as high too; that's a limit of the maths, which the screen explains.
+- [ ] **Phone layout**: the Photo and Map tabs switch automatically after each click, and both views size correctly the first time each tab is shown.
+- [ ] **Escape, the × button and leaving with unsaved points** ask "Leave without saving your points?" first, and both closing and saving return to the same organisation's page.
+- [ ] **Landscape is enough to align against.** If matching the photo to the drawn map is too hard in practice, consider an aerial imagery toggle on the alignment map (Esri World Imagery is the usual free one; check its terms first).
+- [ ] **Development zoom limit**: without a Thunderforest key the alignment map falls back to OpenStreetMap, which has no tiles past zoom 19, so zooming further shows a blank map. Thunderforest goes to 22.
+
 ## Build and deploy
 
 - [ ] **GitHub repository variables** `VITE_DATA_API_URL`, `VITE_AUTH_URL` and `VITE_THUNDERFOREST_KEY` are set (as variables, not secrets).

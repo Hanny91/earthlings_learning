@@ -16,21 +16,32 @@ import { ROLE_LABELS } from '../roles';
 import { CopyLink } from './CopyLink';
 import { Dialog } from './Dialog';
 import { useNotice } from './Notices';
-import { OrganisationPhotos } from './OrganisationPhotos';
+import { OrganisationPhotos, type PhotoToAlign } from './OrganisationPhotos';
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+interface OrganisationsDialogProps {
+  onClose: () => void;
+  /** Opens with this organisation selected, e.g. when coming back from lining up a photo. */
+  initialOrganisationId?: string;
+  onAlignPhoto: (organisationId: string, photo: PhotoToAlign) => void;
+}
 
 /**
  * The signed-in user's organisations, with members and invites for the one
  * selected. Controls are hidden by role, but the auth server makes the decision.
  */
-export function OrganisationsDialog({ onClose }: { onClose: () => void }) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+export function OrganisationsDialog({ onClose, initialOrganisationId, onAlignPhoto }: OrganisationsDialogProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(initialOrganisationId ?? null);
 
   return (
     <Dialog title="Organisations" onClose={onClose}>
       {selectedId ? (
-        <OrganisationDetail organisationId={selectedId} onBack={() => setSelectedId(null)} />
+        <OrganisationDetail
+          organisationId={selectedId}
+          onBack={() => setSelectedId(null)}
+          onAlignPhoto={(photo) => onAlignPhoto(selectedId, photo)}
+        />
       ) : (
         <OrganisationList onSelect={setSelectedId} />
       )}
@@ -64,7 +75,13 @@ function OrganisationList({ onSelect }: { onSelect: (id: string) => void }) {
   );
 }
 
-function OrganisationDetail({ organisationId, onBack }: { organisationId: string; onBack: () => void }) {
+interface OrganisationDetailProps {
+  organisationId: string;
+  onBack: () => void;
+  onAlignPhoto: (photo: PhotoToAlign) => void;
+}
+
+function OrganisationDetail({ organisationId, onBack, onAlignPhoto }: OrganisationDetailProps) {
   const user = useAuth();
   const notice = useNotice();
   const [details, setDetails] = useState<OrganisationDetails | null>(null);
@@ -190,7 +207,7 @@ function OrganisationDetail({ organisationId, onBack }: { organisationId: string
 
           <InviteForm organisationId={details.id} onInvited={load} />
 
-          <OrganisationPhotos organisationId={details.id} />
+          <OrganisationPhotos organisationId={details.id} onAlign={onAlignPhoto} />
         </>
       )}
 
