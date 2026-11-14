@@ -8,6 +8,7 @@
 // (leaflet-zoom-hide), like Leaflet's own canvas layers.
 
 import L from 'leaflet';
+import { rectToQuadMatrix } from './georef';
 import type { Corners } from './imagesApi';
 
 export interface AerialImageOptions {
@@ -25,7 +26,9 @@ export class AerialImageLayer extends L.Layer {
     private readonly height: number,
     private readonly layerOptions: AerialImageOptions = {},
   ) {
-    super({ pane: layerOptions.pane ?? 'overlayPane' });
+    super();
+    // L.Layer has no initialize(), so options passed to super() are dropped; set them directly.
+    L.setOptions(this, { pane: layerOptions.pane ?? 'overlayPane' });
   }
 
   onAdd(map: L.Map): this {
@@ -73,38 +76,6 @@ export class AerialImageLayer extends L.Layer {
     if (!this.image || !this._map) return;
     const map = this._map;
     const points = this.corners.map((c) => map.latLngToLayerPoint([c.lat, c.lng]));
-    this.image.style.transform = rectToQuad(this.width, this.height, points);
+    this.image.style.transform = `matrix3d(${rectToQuadMatrix(this.width, this.height, points).join(', ')})`;
   }
-}
-
-/**
- * The CSS matrix3d that maps a width × height rectangle onto four points
- * (top-left, top-right, bottom-right, bottom-left), after Heckbert's
- * square-to-quad formula.
- */
-function rectToQuad(width: number, height: number, [p0, p1, p2, p3]: L.Point[]): string {
-  const dx1 = p1.x - p2.x;
-  const dx2 = p3.x - p2.x;
-  const dx3 = p0.x - p1.x + p2.x - p3.x;
-  const dy1 = p1.y - p2.y;
-  const dy2 = p3.y - p2.y;
-  const dy3 = p0.y - p1.y + p2.y - p3.y;
-
-  // Unit square -> quad: X = (a·u + b·v + c) / (g·u + h·v + 1), and likewise Y with d, e, f.
-  let g = 0;
-  let h = 0;
-  if (dx3 !== 0 || dy3 !== 0) {
-    const det = dx1 * dy2 - dx2 * dy1;
-    g = (dx3 * dy2 - dx2 * dy3) / det;
-    h = (dx1 * dy3 - dx3 * dy1) / det;
-  }
-  const a = p1.x - p0.x + g * p1.x;
-  const b = p3.x - p0.x + h * p3.x;
-  const c = p0.x;
-  const d = p1.y - p0.y + g * p1.y;
-  const e = p3.y - p0.y + h * p3.y;
-  const f = p0.y;
-
-  // Photo pixels -> unit square is u = x / width, v = y / height. matrix3d is column by column.
-  return `matrix3d(${a / width}, ${d / width}, 0, ${g / width}, ${b / height}, ${e / height}, 0, ${h / height}, 0, 0, 1, 0, ${c}, ${f}, 0, 1)`;
 }

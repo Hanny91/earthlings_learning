@@ -104,8 +104,11 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 ## Phase 5: Showing photos on the map
 
 - `AerialImageLayer.ts` already exists from phase 4: it places the `<img>` by its four corners with a CSS `matrix3d` transform, recalculated on zoom.
-- A new **`aerial` pane at z 220**, between the base map (200) and the geology layer (250), so pins and data layers stay on top. Add it to the layer list in `layers.ts`.
-- An "Aerial photos" switch (off by default, remembered per device) and an opacity control. Photos load only when in view, through `mapImagesInBbox`.
+- A new **`aerial` pane at z 220**, between the base map (200) and the geology layer (250), so pins and data layers stay on top. It's in the layer list in `layers.ts`.
+- An **"Aerial photos" switch** under the Pins filter, with an opacity slider (default 80%). It's off by default, and both settings are remembered per device. It only appears for signed-in users who are in at least one organisation, since nobody else can see any photos.
+- **Loading** happens with the pins, through `mapImagesInBbox`, for the photos in view. Photos already drawn stay put when panning, and each photo is downloaded once per visit.
+- **Only from zoom 14** (park scale). Photos are a few MB each, so zoomed further out the switch says "Zoom in to see photos" instead of downloading every photo in the county.
+- **Re-aligning or deleting** a photo redraws the map straight away.
 
 ## Things to tell users
 

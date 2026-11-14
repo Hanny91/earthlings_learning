@@ -112,8 +112,20 @@ Phases 3 and 4 of [photos.md](photos.md). Open it from **Organisations → (an o
 - [ ] **Error numbers are believable.** A careful alignment should read around 1–2 m. Deliberately drag one map marker about 10 m away: its number should jump to roughly 10 m. With only 4–5 points a neighbouring point can read as high too; that's a limit of the maths, which the screen explains.
 - [ ] **Phone layout**: the Photo and Map tabs switch automatically after each click, and both views size correctly the first time each tab is shown.
 - [ ] **Escape, the × button and leaving with unsaved points** ask "Leave without saving your points?" first, and both closing and saving return to the same organisation's page.
+  - Also try pressing Escape twice in a row in Chrome without clicking in between. Chrome sometimes won't let the second press be cancelled; the dialog then reopens straight away if you choose to stay. Check the points are still there.
 - [ ] **Landscape is enough to align against.** If matching the photo to the drawn map is too hard in practice, consider an aerial imagery toggle on the alignment map (Esri World Imagery is the usual free one; check its terms first).
 - [ ] **Development zoom limit**: without a Thunderforest key the alignment map falls back to OpenStreetMap, which has no tiles past zoom 19, so zooming further shows a blank map. Thunderforest goes to 22.
+
+## Aerial photos on the map (`map-app/src/map.ts`, phase 5)
+
+- [ ] **The switch appears only for organisation members**: signed out, or signed in without an organisation, there's no "Aerial photos" control.
+- [ ] **Photos appear from zoom 14** with the switch on, and the control says "Zoom in to see photos" further out.
+- [ ] **Photos sit under the pins** (the `aerial` pane at z 220) and clicks on the map through a photo still add pins. The first version put them on top, because Leaflet ignored the pane option; fixed after code review.
+- [ ] **The organisation list is fetched once per visit** and shared by the map and the Organisations dialog. After joining or leaving through the app it refreshes; an organisation created or joined from another browser or the Neon console only shows after a reload.
+- [ ] **Members see their own organisation's photos only.** A member of a different organisation sees none of them, even when zoomed in on the same spot.
+- [ ] **The switch and opacity are remembered** after a reload on the same device.
+- [ ] **Re-aligning or deleting** a photo in the Organisations dialog updates the map without a reload.
+- [ ] **Zoom 14 is the right threshold.** Lower it in `map.ts` (`AERIAL_MIN_ZOOM`) if people want photos visible further out; each photo in view is downloaded once per visit.
 
 ## Build and deploy
 
