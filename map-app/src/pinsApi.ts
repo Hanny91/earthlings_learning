@@ -1,12 +1,7 @@
-// The only module that talks to the Neon Data API. All pin reads and writes
-// go through here; RLS decides what each call is allowed to see or change.
-//
-// ASSUMPTION (verify once the Data API is set up): it is PostgREST-compatible,
-// with tables at {VITE_DATA_API_URL}/pins and functions at /rpc/<name>, and
-// requests without an Authorization header run as the "anonymous" role.
+// All pin reads and writes go through here; RLS decides what each call is
+// allowed to see or change. Request handling is shared with photos in dataApi.ts.
 
-import { getAccessToken } from './auth';
-import { config } from './config';
+import { ApiError, request } from './dataApi';
 
 export type Visibility = 'public' | 'org_only';
 
@@ -40,12 +35,6 @@ export interface Bbox {
   maxLat: number;
 }
 
-export class ApiError extends Error {
-  constructor(message: string, readonly code?: string) {
-    super(message);
-  }
-}
-
 // Row shape returned by pins_in_bbox (see db/migrations/005_pins_in_bbox.sql).
 interface PinRow {
   id: number;
@@ -59,12 +48,6 @@ interface PinRow {
   can_edit: boolean;
   created_at: string;
   updated_at: string;
-}
-
-interface PostgrestError {
-  code?: string;
-  message?: string;
-  hint?: string | null;
 }
 
 /** Pins inside the box that the current viewer may see, newest first, capped by the database. */
@@ -139,55 +122,4 @@ function toRow(input: PinInput) {
 // nothing looks the same as one on a pin that doesn't exist.
 function notAllowed(): ApiError {
   return new ApiError("That pin doesn't exist or you don't have permission to change it.", '42501');
-}
-
-async function request<T>(
-  method: 'POST' | 'PATCH' | 'DELETE',
-  path: string,
-  options: { body?: unknown; returnRows?: boolean; signal?: AbortSignal } = {},
-): Promise<T> {
-  const headers: Record<string, string> = { Accept: 'application/json' };
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
-  if (options.returnRows) headers.Prefer = 'return=representation';
-
-  const token = await getAccessToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  let response: Response;
-  try {
-    response = await fetch(`${config.dataApiUrl}${path}`, {
-      method,
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      signal: options.signal,
-    });
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') throw error;
-    throw new ApiError("Couldn't reach the map server. Check your connection and try again.");
-  }
-
-  if (!response.ok) {
-    const body: PostgrestError = await response.json().catch(() => ({}));
-    throw toApiError(response.status, body);
-  }
-
-  return (response.status === 204 ? [] : await response.json()) as T;
-}
-
-function toApiError(status: number, body: PostgrestError): ApiError {
-  // The friendly messages below hide the database's own wording, which is what's needed for debugging.
-  console.warn(`Data API error (${status}):`, body);
-  if (body.hint === 'rate_limit') {
-    return new ApiError("You've added a lot of pins recently. Please wait a while before adding more.", body.code);
-  }
-  switch (body.code) {
-    case '42501':
-      return new ApiError("You don't have permission to do that.", body.code);
-    case '23514':
-      return new ApiError('Some of the pin details are invalid. Please check them and try again.', body.code);
-  }
-  if (status === 401) {
-    return new ApiError('Your session has expired. Please sign in again.', body.code);
-  }
-  return new ApiError(body.message ?? `The map server returned an error (${status}).`, body.code);
 }

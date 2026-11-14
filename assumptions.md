@@ -40,7 +40,11 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **`inviteMember` works with no email sending configured**: it creates the invite and returns its ID, rather than failing because there's no email sender set up.
 - [ ] **The server lets owners and admins** invite people, change roles and remove members, but not ordinary members.
 - [ ] **`getInvitation` only works for the signed-in invitee** whose email matches the invite. The accept screen relies on this and explains it when it fails.
-- [ ] **Invite expiry:** Better Auth's default is 48 hours. Check whether that's long enough for sending links by hand.
+- [ ] **Invite expiry is 30 days** (migration `010`, a trigger that overwrites Neon Auth's 48-hour default). Check that:
+  - Invites live in `neon_auth.invitation` with camelCase `"expiresAt"` and `"status"` columns.
+  - The migration role can create a trigger on that table. 006 found the owner can't grant on Neon's `auth` schema, so this may be refused too.
+  - A new invite shows "expires" about 30 days out in the Organisations panel, and an invite older than 48 hours can still be accepted.
+  - The trigger is still there after Neon updates Neon Auth.
 - [ ] **The invite link** `https://earthlingslearning.co.uk/map/?invite=<id>` opens the app, and the `?invite=` part is removed from the address bar after accepting, declining or closing.
 
 ## Data API client (`map-app/src/pinsApi.ts`)
@@ -73,6 +77,23 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **Identity column inserts work** for the `authenticated` role, which has no separate sequence grant.
 - [ ] **The rate-limit error reaches the client readably** (message "Rate limit reached…", hint `rate_limit`) through the Data API.
 - [ ] **Policy checks in `(select …)` run once per query**, not once per row. You can confirm with `EXPLAIN` on a `pins_in_bbox` call: the plan should show an InitPlan.
+
+## Aerial photos (`db/migrations/008_map_images.sql`, `map-app/src/imagesApi.ts`)
+
+Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now removed. The open items below can be checked once the upload form exists (phase 5).
+
+- [x] **Neon accepts uploads up to the table's 4 MB limit.** Confirmed: a 3.89 MB JPEG (a ~5.2 MB base64 request) uploaded and came back intact; a 4.20 MB one was refused by the table with code `23514`, not by Neon. Neon's own limit is somewhere above that, so uploads don't need splitting.
+- [x] **`"*/*"` downloads don't work on Neon.** `008`'s `map_image_file` returned a 0.67 MB JPEG as 1.69 MB of unusable data, so raw binary doesn't survive the Data API. `009` replaces it with `map_image_base64`, which returns base64 text in JSON (about a third bigger), and the browser turns it back into a JPEG.
+- [x] **Base64 downloads work.** Confirmed after `009`: the 0.67 MB test photo came back the same size and the thumbnail showed, so the upload was intact too.
+- [x] **The Data API honours `Cache-Control`** from `set_config('response.headers', ...)`. Confirmed on `map_image_file`; `map_image_base64` sets the same header.
+- [ ] **The browser reuses the cached download** on a later page load (the Network tab shows "(disk cache)" for `map_image_base64`). It may not, because the request carries a login token; that only costs a re-download per visit.
+- [ ] **A missing photo returns 404.** `map_image_base64` raises `P0002`, which PostgREST turns into a 404.
+- [x] **`notify pgrst, 'reload schema'` does nothing on Neon.** After `009`, the new function gave `PGRST202` ("Could not find the function … in the schema cache") until the schema was refreshed in the Neon console. After every migration that adds or changes tables or functions, refresh the schema on the Data API page.
+- [x] **Upload and download times** are acceptable: 4.7 s up and 3.2 s down for the 3.89 MB photo. Phase 2's compression aims for 3 MB or less, so real uploads will be quicker.
+- [ ] **The 10-per-organisation limit** gives the friendly "already has the most photos" message (hint `photo_limit`) on the 11th upload, and holds when two uploads happen at once (an advisory lock serialises them).
+- [ ] **Only owners and admins can upload.** An ordinary member gets a permission error when uploading.
+- [ ] **Safari's `canvas.toBlob('image/jpeg')`** produces a JPEG at the requested quality. Phase 2 relies on this.
+- [x] **The test page is removed** (`map-app/photo-test.html`, `map-app/src/photoTest.tsx`).
 
 ## Build and deploy
 
