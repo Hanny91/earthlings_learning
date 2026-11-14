@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { loadSession, onOrganisationsChange } from '../auth';
 import { errorMessage } from '../errors';
 import { useAuth } from '../hooks/useAuth';
 import { deletePin, type Pin } from '../pinsApi';
 import { AcceptInviteDialog } from './AcceptInviteDialog';
+import { AlignPhotoDialog, type MapViewState } from './AlignPhotoDialog';
 import { Header } from './Header';
 import { MapView } from './MapView';
 import { useNotice } from './Notices';
@@ -18,7 +19,8 @@ type PinFormState = { lat: number; lng: number; pin?: Pin };
 type Modal =
   | { kind: 'signIn'; intro?: string; next?: Modal }
   | ({ kind: 'pinForm' } & PinFormState)
-  | { kind: 'organisations' }
+  | { kind: 'organisations'; organisationId?: string }
+  | { kind: 'alignPhoto'; organisationId: string; imageId: number; title: string }
   | { kind: 'invite'; inviteId: string };
 
 // Invite links look like /map/?invite=<id> (see inviteLink in auth.ts).
@@ -35,6 +37,8 @@ export function App() {
   const notice = useNotice();
   const [modal, setModal] = useState<Modal | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  // Where the main map is, so lining up a new photo starts there.
+  const mapView = useRef<MapViewState | null>(null);
 
   const reloadPins = () => setReloadKey((key) => key + 1);
   const closeModal = () => setModal(null);
@@ -83,6 +87,9 @@ export function App() {
         onAddPin={handleAddPin}
         onEditPin={(pin) => setModal({ kind: 'pinForm', lat: pin.lat, lng: pin.lng, pin })}
         onDeletePin={handleDeletePin}
+        onViewChange={(view) => {
+          mapView.current = view;
+        }}
       />
 
       {modal?.kind === 'signIn' && (
@@ -110,7 +117,29 @@ export function App() {
         />
       )}
 
-      {modal?.kind === 'organisations' && <OrganisationsDialog onClose={closeModal} />}
+      {modal?.kind === 'organisations' && (
+        <OrganisationsDialog
+          onClose={closeModal}
+          initialOrganisationId={modal.organisationId}
+          onAlignPhoto={(organisationId, photo) =>
+            setModal({ kind: 'alignPhoto', organisationId, imageId: photo.id, title: photo.title })
+          }
+        />
+      )}
+
+      {modal?.kind === 'alignPhoto' && (
+        <AlignPhotoDialog
+          imageId={modal.imageId}
+          title={modal.title}
+          startView={mapView.current}
+          // Both ways back return to the same organisation, whose photo list reloads.
+          onClose={() => setModal({ kind: 'organisations', organisationId: modal.organisationId })}
+          onSaved={() => {
+            notice('Photo lined up.');
+            setModal({ kind: 'organisations', organisationId: modal.organisationId });
+          }}
+        />
+      )}
 
       {modal?.kind === 'invite' && (
         <AcceptInviteDialog

@@ -5,8 +5,11 @@ import L from 'leaflet';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useOrganisations } from '../hooks/useOrganisations';
+import { onImagesChange } from '../imagesApi';
 import { SurveyMap } from '../map';
 import type { Pin } from '../pinsApi';
+import type { MapViewState } from './AlignPhotoDialog';
 import { useNotice } from './Notices';
 import { PinPopup } from './PinPopup';
 
@@ -16,6 +19,8 @@ interface MapViewProps {
   onAddPin: (latlng: L.LatLng) => void;
   onEditPin: (pin: Pin) => void;
   onDeletePin: (pin: Pin) => void;
+  /** Called after each pan or zoom, e.g. so lining up a photo can start in the same place. */
+  onViewChange?: (view: MapViewState) => void;
 }
 
 type PopupTarget = { kind: 'pin'; pin: Pin } | { kind: 'new'; latlng: L.LatLng };
@@ -26,7 +31,7 @@ interface OpenPopup {
   target: PopupTarget;
 }
 
-export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapViewProps) {
+export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin, onViewChange }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<SurveyMap | null>(null);
   const [openPopup, setOpenPopup] = useState<OpenPopup | null>(null);
@@ -34,9 +39,11 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
   const notice = useNotice();
 
   // SurveyMap is created once, so it calls through this ref to get the latest props.
-  const handlers = useRef({ onAddPin, onEditPin, onDeletePin, notice });
-  handlers.current = { onAddPin, onEditPin, onDeletePin, notice };
+  const handlers = useRef({ onAddPin, onEditPin, onDeletePin, onViewChange, notice });
+  handlers.current = { onAddPin, onEditPin, onDeletePin, onViewChange, notice };
   const lastLoadError = useRef<string | null>(null);
+  const lastAerialError = useRef<string | null>(null);
+  const { organisations } = useOrganisations();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -56,6 +63,11 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
         lastLoadError.current = error.message;
         handlers.current.notice(`Couldn't load pins: ${error.message}`, 'error');
       },
+      onAerialLoadError: (error) => {
+        if (error.message === lastAerialError.current) return;
+        lastAerialError.current = error.message;
+        handlers.current.notice(`Couldn't load aerial photos: ${error.message}`, 'error');
+      },
     });
 
     surveyMap.map.on('popupopen', (event: L.PopupEvent) => {
@@ -65,6 +77,10 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
       if (pin && element instanceof HTMLElement) {
         setOpenPopup({ popup: event.popup, element, target: { kind: 'pin', pin } });
       }
+    });
+    surveyMap.map.on('moveend', () => {
+      const center = surveyMap.map.getCenter();
+      handlers.current.onViewChange?.({ lat: center.lat, lng: center.lng, zoom: surveyMap.map.getZoom() });
     });
     surveyMap.map.on('popupclose', (event: L.PopupEvent) => {
       setOpenPopup((current) => (current?.popup === event.popup ? null : current));
@@ -88,8 +104,17 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin }: MapView
     }
     // A sign-in change or deliberate reload may fix (or change) the error, so show it again if it recurs.
     lastLoadError.current = null;
+    lastAerialError.current = null;
     void mapRef.current?.reload();
   }, [reloadKey, user?.id]);
+
+  // Aerial photos are only for organisation members, so the switch appears once the user is in one.
+  useEffect(() => {
+    mapRef.current?.setAerialAvailable(Boolean(user) && organisations.length > 0);
+  }, [user?.id, organisations.length]);
+
+  // Re-aligning or deleting a photo elsewhere (the Organisations dialog) redraws it here.
+  useEffect(() => onImagesChange(() => void mapRef.current?.reload()), []);
 
   // Leaflet sizes a popup when it opens, before the portal has rendered into
   // it, so resize once the content is there.

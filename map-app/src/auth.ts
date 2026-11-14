@@ -84,6 +84,10 @@ const client = createAuthClient({
 
 let currentUser: AuthUser | null = null;
 let cachedToken: { value: string; expiresAt: number } | null = null;
+// Several parts of the page ask for the user's organisations (the map, the
+// Organisations dialog), so one request is shared until sign-in or membership
+// changes. Memberships changed from another browser show after a reload.
+let cachedOrganisations: Promise<Organisation[]> | null = null;
 const listeners = new Set<AuthListener>();
 const organisationListeners = new Set<() => void>();
 
@@ -97,6 +101,7 @@ const sessionChecked = new Promise<void>((resolve) => {
 function setUser(user: AuthUser | null): void {
   currentUser = user;
   cachedToken = null;
+  cachedOrganisations = null;
   listeners.forEach((listener) => listener(user));
 }
 
@@ -175,10 +180,19 @@ export async function signOut(): Promise<void> {
 }
 
 /** Organisations the signed-in user belongs to; empty when logged out. */
-export async function listMyOrganisations(): Promise<Organisation[]> {
-  if (!currentUser) return [];
-  const orgs = unwrap(await client.organization.list());
-  return orgs.map((org) => ({ id: org.id, name: org.name }));
+export function listMyOrganisations(): Promise<Organisation[]> {
+  if (!currentUser) return Promise.resolve([]);
+  if (!cachedOrganisations) {
+    const request = client.organization.list().then((result) =>
+      unwrap(result).map((org) => ({ id: org.id, name: org.name })),
+    );
+    // A failed request shouldn't stick; the next call tries again.
+    request.catch(() => {
+      if (cachedOrganisations === request) cachedOrganisations = null;
+    });
+    cachedOrganisations = request;
+  }
+  return cachedOrganisations;
 }
 
 // Organisations are created by hand while testing, so there's no createOrganisation here yet.
@@ -194,6 +208,7 @@ export function onOrganisationsChange(listener: () => void): () => void {
 }
 
 function organisationsChanged(): void {
+  cachedOrganisations = null;
   organisationListeners.forEach((listener) => listener());
 }
 

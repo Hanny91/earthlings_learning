@@ -30,11 +30,6 @@ interface RequestOptions {
 
 /** A JSON request. Errors come back as ApiError with a readable message. */
 export async function request<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await send(method, path, options);
-  return (response.status === 204 ? [] : await response.json()) as T;
-}
-
-async function send(method: Method, path: string, options: RequestOptions): Promise<Response> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   if (options.returnRows) headers.Prefer = 'return=representation';
@@ -59,7 +54,7 @@ async function send(method: Method, path: string, options: RequestOptions): Prom
     const body: PostgrestError = await response.json().catch(() => ({}));
     throw toApiError(response.status, body);
   }
-  return response;
+  return (response.status === 204 ? [] : await response.json()) as T;
 }
 
 function toApiError(status: number, body: PostgrestError): ApiError {

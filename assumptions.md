@@ -40,7 +40,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 - [ ] **`inviteMember` works with no email sending configured**: it creates the invite and returns its ID, rather than failing because there's no email sender set up.
 - [ ] **The server lets owners and admins** invite people, change roles and remove members, but not ordinary members.
 - [ ] **`getInvitation` only works for the signed-in invitee** whose email matches the invite. The accept screen relies on this and explains it when it fails.
-- [ ] **Invite expiry is 30 days** (migration `010`, a trigger that overwrites Neon Auth's 48-hour default). Check that:
+- [x] **Invite expiry is 30 days** (migration `010`, a trigger that overwrites Neon Auth's 48-hour default). Check that:
   - Invites live in `neon_auth.invitation` with camelCase `"expiresAt"` and `"status"` columns.
   - The migration role can create a trigger on that table. 006 found the owner can't grant on Neon's `auth` schema, so this may be refused too.
   - A new invite shows "expires" about 30 days out in the Organisations panel, and an invite older than 48 hours can still be accepted.
@@ -80,7 +80,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 ## Aerial photos (`db/migrations/008_map_images.sql`, `map-app/src/imagesApi.ts`)
 
-Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now removed. The open items below can be checked once the upload form exists (phase 5).
+Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now removed. Phase 2 added the real upload form: **Organisations → (an organisation) → Aerial photos**, shown to owners and admins.
 
 - [x] **Neon accepts uploads up to the table's 4 MB limit.** Confirmed: a 3.89 MB JPEG (a ~5.2 MB base64 request) uploaded and came back intact; a 4.20 MB one was refused by the table with code `23514`, not by Neon. Neon's own limit is somewhere above that, so uploads don't need splitting.
 - [x] **`"*/*"` downloads don't work on Neon.** `008`'s `map_image_file` returned a 0.67 MB JPEG as 1.69 MB of unusable data, so raw binary doesn't survive the Data API. `009` replaces it with `map_image_base64`, which returns base64 text in JSON (about a third bigger), and the browser turns it back into a JPEG.
@@ -91,9 +91,41 @@ Phase 1 of [photos.md](photos.md) was tested with a temporary upload page, now r
 - [x] **`notify pgrst, 'reload schema'` does nothing on Neon.** After `009`, the new function gave `PGRST202` ("Could not find the function … in the schema cache") until the schema was refreshed in the Neon console. After every migration that adds or changes tables or functions, refresh the schema on the Data API page.
 - [x] **Upload and download times** are acceptable: 4.7 s up and 3.2 s down for the 3.89 MB photo. Phase 2's compression aims for 3 MB or less, so real uploads will be quicker.
 - [ ] **The 10-per-organisation limit** gives the friendly "already has the most photos" message (hint `photo_limit`) on the 11th upload, and holds when two uploads happen at once (an advisory lock serialises them).
-- [ ] **Only owners and admins can upload.** An ordinary member gets a permission error when uploading.
-- [ ] **Safari's `canvas.toBlob('image/jpeg')`** produces a JPEG at the requested quality. Phase 2 relies on this.
+- [ ] **Only owners and admins can upload.** The Aerial photos section is hidden from ordinary members, so this only matters if the database rule is wrong. To check the rule itself, a member would need to call `upload_map_image` directly (e.g. from the browser console); it should fail with a permission error.
+- [ ] **Safari's `canvas.toBlob('image/jpeg')`** produces a JPEG at the requested quality ([imageCompress.ts](map-app/src/imageCompress.ts)). If it doesn't, the form says the browser "couldn't save the photo as a JPEG" rather than uploading the wrong thing.
+- [x] **Photos come out the right way up.** `createImageBitmap(file, { imageOrientation: 'from-image' })` follows the camera's orientation data. Check with a phone photo taken in portrait.
+- [ ] **Large drone photos compress on the devices admins use.** A 48-megapixel photo needs a few hundred MB of memory while being read. Fine on a computer; a phone may fail with "too large for this device to process".
+- [ ] **Compression lands where photos.md expects:** a typical drone photo comes out at 4000px and 1–3 MB. The form shows the before and after size.
+- [ ] **Location data is removed.** Re-saving through a canvas drops EXIF, including GPS. Check by downloading an uploaded photo and looking at its properties (in Windows: right-click → Properties → Details): there should be no GPS section.
+- [ ] **HEIC photos** (iPhone default) get a readable "save it as a JPEG" message in Chrome and Firefox, which can't read them. Safari can, so they should just work there.
 - [x] **The test page is removed** (`map-app/photo-test.html`, `map-app/src/photoTest.tsx`).
+
+## Lining up photos (`map-app/src/components/AlignPhotoDialog.tsx`, `georef.ts`, `AerialImageLayer.ts`)
+
+Phases 3 and 4 of [photos.md](photos.md). Open it from **Organisations → (an organisation) → Aerial photos → Line up**, or upload a photo, which goes straight there.
+
+- [ ] **Saving an alignment works through the Data API**: `PATCH /map_images` with `control_points` and `corners` succeeds for owners and admins, and the photo then shows **Re-align** instead of **Line up**.
+- [ ] **The database accepts the corners the app sends** and builds the footprint (`map_images_before_write` in `008`). A refusal shows "The points don't agree with each other".
+- [ ] **Re-align starts from the saved points**, with the map on the photo's position.
+- [ ] **The preview lines up with the map** at every zoom level and doesn't drift when panning. It hides during the zoom animation and reappears in place, which is expected.
+- [ ] **Angled photos bend correctly.** With 6 or more points on an angled photo, the status says "fitted as an angled photo" and the preview's far edge is wider than its near edge.
+- [ ] **Error numbers are believable.** A careful alignment should read around 1–2 m. Deliberately drag one map marker about 10 m away: its number should jump to roughly 10 m. With only 4–5 points a neighbouring point can read as high too; that's a limit of the maths, which the screen explains.
+- [ ] **Phone layout**: the Photo and Map tabs switch automatically after each click, and both views size correctly the first time each tab is shown.
+- [ ] **Escape, the × button and leaving with unsaved points** ask "Leave without saving your points?" first, and both closing and saving return to the same organisation's page.
+  - Also try pressing Escape twice in a row in Chrome without clicking in between. Chrome sometimes won't let the second press be cancelled; the dialog then reopens straight away if you choose to stay. Check the points are still there.
+- [ ] **Landscape is enough to align against.** If matching the photo to the drawn map is too hard in practice, consider an aerial imagery toggle on the alignment map (Esri World Imagery is the usual free one; check its terms first).
+- [ ] **Development zoom limit**: without a Thunderforest key the alignment map falls back to OpenStreetMap, which has no tiles past zoom 19, so zooming further shows a blank map. Thunderforest goes to 22.
+
+## Aerial photos on the map (`map-app/src/map.ts`, phase 5)
+
+- [ ] **The switch appears only for organisation members**: signed out, or signed in without an organisation, there's no "Aerial photos" control.
+- [ ] **Photos appear from zoom 14** with the switch on, and the control says "Zoom in to see photos" further out.
+- [ ] **Photos sit under the pins** (the `aerial` pane at z 220) and clicks on the map through a photo still add pins. The first version put them on top, because Leaflet ignored the pane option; fixed after code review.
+- [ ] **The organisation list is fetched once per visit** and shared by the map and the Organisations dialog. After joining or leaving through the app it refreshes; an organisation created or joined from another browser or the Neon console only shows after a reload.
+- [ ] **Members see their own organisation's photos only.** A member of a different organisation sees none of them, even when zoomed in on the same spot.
+- [ ] **The switch and opacity are remembered** after a reload on the same device.
+- [ ] **Re-aligning or deleting** a photo in the Organisations dialog updates the map without a reload.
+- [ ] **Zoom 14 is the right threshold.** Lower it in `map.ts` (`AERIAL_MIN_ZOOM`) if people want photos visible further out; each photo in view is downloaded once per visit.
 
 ## Build and deploy
 

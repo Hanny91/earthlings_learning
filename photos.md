@@ -56,28 +56,59 @@ The aim is "clearly better than satellite", not every leaf: about 10–20 cm per
 - JPEG, not WebP: Safari quietly saves a PNG when asked for WebP, which would be bigger.
 - Redrawing strips EXIF data, including the drone's GPS position, which is good for privacy.
 - Show the before and after size ("18.4 MB → 2.1 MB") before uploading.
+- **Upload form, brought forward from phase 5:** an "Aerial photos" section on an organisation's page in the Organisations dialog, for owners and admins. It has a file picker, title (started from the file name), optional date taken, the before/after size with a preview, and a list of the organisation's photos with Delete and how many of the 10 are used. Re-align buttons come with phase 4.
 
 ## Phase 3: API module (`map-app/src/imagesApi.ts`)
 
-- The only file that touches image storage, as `pinsApi.ts` is for pins. It shares that file's request and error handling rather than copying it.
+- The only file that touches image storage, as `pinsApi.ts` is for pins. Request and error handling are shared through `dataApi.ts`.
 - `getImageUrl(id)` downloads the image with the login token (an `<img src>` can't send one), turns the base64 back into a JPEG and then into a temporary browser link, and keeps it in memory so panning the map doesn't re-download it. Moving to R2 later only changes this function.
+- `getImageAlignment(id)` loads a photo's saved control points, width and height, so re-aligning starts from the earlier points.
+- `saveAlignment(id, controlPoints, corners)` saves both. If the database refuses because the corners cross over, the user is told the points don't agree and to look for a misplaced one.
+- `mapImagesInBbox(bbox)` lists the aligned photos in view, for phase 5.
+- Shared types: a control point `{px, py, lng, lat}` and a corner `{lng, lat}`.
 
-## Phase 4: Alignment screen (`AlignImageDialog.tsx`, `map-app/src/georef.ts`)
+## Phase 4: Alignment screen (`AlignPhotoDialog.tsx`, `map-app/src/georef.ts`)
 
-- **Layout:** the photo and the map side by side, or as two tabs on a phone. The photo uses a second Leaflet view (`L.CRS.Simple`), so zooming and panning work the same on both.
-- **Workflow:** click a feature on the photo, then the same feature on the map, and repeat. Numbered markers can be dragged or deleted. Saving needs at least 3 pairs, and the screen suggests 4–6 spread across the photo, since drone lenses bend the image near the edges.
-- **The fit (`georef.ts`, no dependency):**
-  - 3 pairs: an affine fit (move, rotate, scale, skew), for straight-down shots.
-  - 4 or more: a perspective fit, for angled shots, using least squares to even out small clicking errors.
-  - Each point's error is shown in metres, so a bad click stands out.
-- **Preview:** the photo appears on the map while aligning, with an opacity slider. Saving stores the control points and corners, and the footprint follows automatically.
+**Decisions:** align against the Landscape map only for now (an aerial imagery toggle can come later if aligning proves hard); the fit is chosen automatically; the maths gets Vitest tests; uploading a photo goes straight to aligning it.
 
-## Phase 5: Showing photos on the map (`map-app/src/AerialImageLayer.ts`)
+**Getting there**
+- Each photo in the organisation's list has **Line up** (not aligned yet) or **Re-align**. Uploading a photo opens the screen straight away; closing it leaves the photo unaligned to do later.
+- The screen is full-screen. Closing it returns to the same organisation's page, and asks first if there are unsaved changes.
 
-- A small custom Leaflet layer places the `<img>` by its four corners with a CSS `matrix3d` transform, recalculated on zoom and pan. Plugins do the same thing; ours is about 100 lines with no dependency.
-- A new **`aerial` pane at z 220**, between the base map (200) and the geology layer (250), so pins and data layers stay on top. Add it to the layer list in `layers.ts`.
-- An "Aerial photos" switch (off by default, remembered per device) and an opacity control. Photos load only when in view.
-- The organisation's management area lists its photos with re-align and delete.
+**Layout**
+- Computer and tablet: photo on the left, map on the right, and a strip along the bottom with instructions, the points list, an opacity slider and Save.
+- Phone: Photo and Map tabs. After clicking a spot on one, it switches to the other automatically.
+- The photo side is a second Leaflet view (`L.CRS.Simple`), so zooming and panning work the same as the map.
+- The map side starts where the main map was, or on the photo's current position when re-aligning.
+
+**Clicking pairs**
+- Click a spot on either side, then the same spot on the other, in either order. The instruction line says what's next.
+- Each pair has a numbered marker, the same number on both sides. The unfinished pair is highlighted. Markers can be dragged.
+- The points list shows each pair's number, its error in metres, and a delete button. Under 2 m is fine, 2–5 m amber, over 5 m red, plus an overall average.
+
+**The fit (`georef.ts`, no new libraries)**
+- Works in the projection Leaflet draws with (Web Mercator), so what's calculated is what's drawn. Errors are converted to ground metres.
+- Affine (move, rotate, scale, skew) by default, right for straight-down shots. From 6 points, perspective is also tried, and used only if it predicts the points at least 20% better than affine. (The original plan switched at 5 points; testing showed a perspective fit with 5 points bends the photo to swallow a 10 m mistake, leaving errors under 1 m.)
+- Each point's error is measured against a fit made from the *other* points ("leave one out"), so a mistake shows at its real size instead of being shared out. With exactly 3 points there's nothing spare to check against, so errors only appear from the 4th point and the screen says "Add a 4th point to check the accuracy."
+- Limit found in testing: with 4–6 points, a misplaced point reads at its real size, but a neighbour can read as high too, so the screen asks for more points to pinpoint it rather than promising the worst one is the culprit.
+- Least squares, with coordinates centred and scaled first so rounding doesn't creep in. Tested with Vitest (`georef.test.ts`).
+
+**Preview**
+- From 3 pairs, the photo appears on the map side, bent onto its fitted corners, updating live as points are added or dragged. Opacity slider, default 60%.
+- This uses the four-corner photo layer (`AerialImageLayer.ts`), brought forward from phase 5.
+
+**Saving**
+- Needs at least 3 complete pairs; a half-finished pair is ignored, with a note.
+- Saves the points and corners, shows "Photo lined up." and returns to the organisation's page.
+
+## Phase 5: Showing photos on the map
+
+- `AerialImageLayer.ts` already exists from phase 4: it places the `<img>` by its four corners with a CSS `matrix3d` transform, recalculated on zoom.
+- A new **`aerial` pane at z 220**, between the base map (200) and the geology layer (250), so pins and data layers stay on top. It's in the layer list in `layers.ts`.
+- An **"Aerial photos" switch** under the Pins filter, with an opacity slider (default 80%). It's off by default, and both settings are remembered per device. It only appears for signed-in users who are in at least one organisation, since nobody else can see any photos.
+- **Loading** happens with the pins, through `mapImagesInBbox`, for the photos in view. Photos already drawn stay put when panning, and each photo is downloaded once per visit.
+- **Only from zoom 14** (park scale). Photos are a few MB each, so zoomed further out the switch says "Zoom in to see photos" instead of downloading every photo in the county.
+- **Re-aligning or deleting** a photo redraws the map straight away.
 
 ## Things to tell users
 
