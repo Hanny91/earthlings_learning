@@ -252,6 +252,11 @@ body {
   color: var(--color-accent-dark);
 }
 
+/* Long email addresses would otherwise push past the popup's width. */
+.pin-popup__creator {
+  overflow-wrap: anywhere;
+}
+
 .pin-popup__notes {
   margin: 0.5rem 0 0 !important;
   white-space: pre-line;

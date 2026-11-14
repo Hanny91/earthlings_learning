@@ -14,6 +14,9 @@ export interface Pin {
   lat: number;
   title: string;
   notes: string | null;
+  /** Null when created_by matches no account. */
+  createdByName: string | null;
+  createdByEmail: string | null;
   canEdit: boolean;
   createdAt: string;
   updatedAt: string;
@@ -35,7 +38,7 @@ export interface Bbox {
   maxLat: number;
 }
 
-// Row shape returned by pins_in_bbox (see db/migrations/005_pins_in_bbox.sql).
+// Row shape returned by pins_in_bbox (latest version in db/migrations/011_pin_creator.sql).
 interface PinRow {
   id: number;
   organisation_id: string | null;
@@ -45,6 +48,8 @@ interface PinRow {
   lat: number;
   title: string;
   notes: string | null;
+  created_by_name: string | null;
+  created_by_email: string | null;
   can_edit: boolean;
   created_at: string;
   updated_at: string;
@@ -100,6 +105,8 @@ function toPin(row: PinRow): Pin {
     lat: row.lat,
     title: row.title,
     notes: row.notes,
+    createdByName: row.created_by_name,
+    createdByEmail: row.created_by_email,
     canEdit: row.can_edit,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

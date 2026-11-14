@@ -21,10 +21,16 @@ export function PinPopup({ pin, onEdit, onDelete }: PinPopupProps) {
     .filter(Boolean)
     .join(' · ');
 
+  // No name or email means created_by matches no account, which is worth seeing.
+  const creator = pin.createdByEmail
+    ? `${pin.createdByName || 'No name'} (${pin.createdByEmail})`
+    : 'unknown user';
+
   return (
     <div className="pin-popup">
       <h3 className="pin-popup__title">{pin.title}</h3>
       <p className="pin-popup__meta">{meta}</p>
+      <p className="pin-popup__meta pin-popup__creator">By {creator}</p>
       {pin.notes && <p className="pin-popup__notes">{pin.notes}</p>}
       {pin.canEdit && (
         <div className="pin-popup__actions">

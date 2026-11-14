@@ -51,7 +51,7 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 - [ ] **`VITE_DATA_API_URL` is the full base URL Neon gives you** (including any path such as `/rest/v1`) with no trailing slash, so `/pins` and `/rpc/pins_in_bbox` can be appended directly.
 - [ ] **The PostgREST features the code uses are supported:** `Prefer: return=representation` and `?select=id` on writes.
-- [ ] **Requests without an `Authorization` header run as `anonymous`**, so logged-out visitors can load public pins. **Failed on first test** ("missing authentication credentials: required authorization bearer token in JWT format") because the Data API's **Anonymous role** setting (under *Show advanced*) was empty. Set it to `anonymous`, then re-check while signed out.
+- [ ] **Requests without an `Authorization` header run as `anonymous`**, so logged-out visitors can load public pins. **Failed on first test** ("missing authentication credentials: required authorization bearer token in JWT format") because the Data API's **Anonymous role** setting (under *Show advanced*) was empty. Set it to `anonymous`, then re-check while signed out. **Still failing (2026-11-14):** the setting is saved as `anonymous`, but a tokenless `curl` to `/rpc/pins_in_bbox` still returns `401 PGRST302`, so Neon isn't applying it. Signed-in users do see everyone's public pins. Left for now; ask Neon support if public viewing is needed (request ID `8c53bcfb-05ba-4505-9951-c8729193976e`).
 - [ ] **The Data API sends CORS headers** for `https://earthlingslearning.co.uk` (and `http://localhost:5173` for development). Set these in the Data API's *CORS allowed origins* (under *Show advanced*).
 - [ ] **`geom` accepts EWKT text** (`SRID=4326;POINT(lng lat)`) in insert and update bodies.
 - [ ] **Error bodies have PostgREST's shape** (`code`, `message`, `hint`), which is what the friendly error messages rely on.
@@ -76,6 +76,8 @@ Things the survey map code assumes but that couldn't be confirmed while building
 
 - [ ] **Identity column inserts work** for the `authenticated` role, which has no separate sequence grant.
 - [ ] **The rate-limit error reaches the client readably** (message "Rate limit reached…", hint `rate_limit`) through the Data API.
+- [ ] **Pin creators show in popups** (migration `011`). `app_private.user_info()` reads `name` and `email` from `neon_auth."user"`, matched on `id`. Check that a pin's popup shows "By Name (email)", and note whether your own individual pins show your account or another one: they currently can't be edited because their `created_by` doesn't match your user ID. "By unknown user" means `created_by` matches no account at all, so the ID in the token isn't the user ID.
+- [ ] **Creator emails are visible to anyone who can see the pin** (decided 2026-11-14). Revisit before inviting people outside the project.
 - [ ] **Policy checks in `(select …)` run once per query**, not once per row. You can confirm with `EXPLAIN` on a `pins_in_bbox` call: the plan should show an InitPlan.
 
 ## Aerial photos (`db/migrations/008_map_images.sql`, `map-app/src/imagesApi.ts`)
