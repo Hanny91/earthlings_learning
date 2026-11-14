@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fitPhoto, project, unproject } from './georef';
+import { fitPhoto, project, rectToQuadMatrix, unproject, type XY } from './georef';
 import type { ControlPoint, LngLat } from './imagesApi';
 
 // A made-up 4000 × 3000 photo of a Cornish park, about 10 cm per pixel.
@@ -132,11 +132,74 @@ describe('fitPhoto', () => {
     const fit = fitPhoto(points, WIDTH, HEIGHT);
     expect(fit === null || fit.valid === false || fit.rmsError! > 50).toBe(true);
   });
+  it('rejects an angled fit whose horizon crosses the photo', () => {
+    // A steep tilt: the ground runs away to a horizon a third of the way down
+    // the photo. Points are only clicked below it, so the fit is exact, but the
+    // top corners would be beyond the horizon.
+    const steep = (px: number, py: number): LngLat => {
+      const w = 1 - (HEIGHT - py) / 2000;
+      return unproject({ x: ORIGIN.x + (0.15 * px) / w, y: ORIGIN.y - (0.15 * py) / w });
+    };
+    const fit = fitPhoto(
+      pointsFrom(steep, [
+        [300, 1700],
+        [3700, 1800],
+        [3600, 2900],
+        [400, 2800],
+        [2000, 2300],
+        [1200, 2000],
+      ]),
+      WIDTH,
+      HEIGHT,
+    );
+    expect(fit === null || !fit.valid).toBe(true);
+  });
 });
 
 describe('Web Mercator', () => {
   it('round-trips a point', () => {
     const point = { lng: -5.05, lat: 50.26 };
     expectClose(unproject(project(point)), point);
+  });
+});
+
+describe('rectToQuadMatrix', () => {
+  // Applies a CSS matrix3d (column by column) to a 2D point.
+  function apply(m: number[], x: number, y: number): XY {
+    const w = m[3] * x + m[7] * y + m[15];
+    return { x: (m[0] * x + m[4] * y + m[12]) / w, y: (m[1] * x + m[5] * y + m[13]) / w };
+  }
+
+  function expectCornersLand(quad: XY[]) {
+    const m = rectToQuadMatrix(WIDTH, HEIGHT, quad);
+    const corners: [number, number][] = [
+      [0, 0],
+      [WIDTH, 0],
+      [WIDTH, HEIGHT],
+      [0, HEIGHT],
+    ];
+    corners.forEach(([x, y], i) => {
+      const p = apply(m, x, y);
+      expect(p.x).toBeCloseTo(quad[i].x, 6);
+      expect(p.y).toBeCloseTo(quad[i].y, 6);
+    });
+  }
+
+  it('maps the photo onto a rotated rectangle', () => {
+    expectCornersLand([
+      { x: 100, y: 50 },
+      { x: 500, y: 250 },
+      { x: 400, y: 450 },
+      { x: 0, y: 250 },
+    ]);
+  });
+
+  it('maps the photo onto an uneven quadrilateral (an angled photo)', () => {
+    expectCornersLand([
+      { x: 120, y: 40 },
+      { x: 610, y: 90 },
+      { x: 520, y: 480 },
+      { x: 60, y: 400 },
+    ]);
   });
 });

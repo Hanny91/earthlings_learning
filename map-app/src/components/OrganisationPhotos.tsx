@@ -168,7 +168,9 @@ function UploadPhotoForm({ organisationId, onUploaded }: { organisationId: strin
     }
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Today where the user is, as YYYY-MM-DD (toISOString would give today in UTC).
+  const now = new Date();
+  const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((n) => String(n).padStart(2, '0')).join('-');
 
   return (
     <form className="form" onSubmit={handleSubmit}>

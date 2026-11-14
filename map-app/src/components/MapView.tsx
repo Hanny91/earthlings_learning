@@ -5,6 +5,8 @@ import L from 'leaflet';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useOrganisations } from '../hooks/useOrganisations';
+import { onImagesChange } from '../imagesApi';
 import { SurveyMap } from '../map';
 import type { Pin } from '../pinsApi';
 import type { MapViewState } from './AlignPhotoDialog';
@@ -40,6 +42,8 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin, onViewCha
   const handlers = useRef({ onAddPin, onEditPin, onDeletePin, onViewChange, notice });
   handlers.current = { onAddPin, onEditPin, onDeletePin, onViewChange, notice };
   const lastLoadError = useRef<string | null>(null);
+  const lastAerialError = useRef<string | null>(null);
+  const { organisations } = useOrganisations();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -58,6 +62,11 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin, onViewCha
         if (error.message === lastLoadError.current) return;
         lastLoadError.current = error.message;
         handlers.current.notice(`Couldn't load pins: ${error.message}`, 'error');
+      },
+      onAerialLoadError: (error) => {
+        if (error.message === lastAerialError.current) return;
+        lastAerialError.current = error.message;
+        handlers.current.notice(`Couldn't load aerial photos: ${error.message}`, 'error');
       },
     });
 
@@ -95,8 +104,17 @@ export function MapView({ reloadKey, onAddPin, onEditPin, onDeletePin, onViewCha
     }
     // A sign-in change or deliberate reload may fix (or change) the error, so show it again if it recurs.
     lastLoadError.current = null;
+    lastAerialError.current = null;
     void mapRef.current?.reload();
   }, [reloadKey, user?.id]);
+
+  // Aerial photos are only for organisation members, so the switch appears once the user is in one.
+  useEffect(() => {
+    mapRef.current?.setAerialAvailable(Boolean(user) && organisations.length > 0);
+  }, [user?.id, organisations.length]);
+
+  // Re-aligning or deleting a photo elsewhere (the Organisations dialog) redraws it here.
+  useEffect(() => onImagesChange(() => void mapRef.current?.reload()), []);
 
   // Leaflet sizes a popup when it opens, before the portal has rendered into
   // it, so resize once the content is there.

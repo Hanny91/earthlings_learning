@@ -150,7 +150,6 @@ export interface MapImageInView {
   width: number;
   height: number;
   corners: Corners;
-  canEdit: boolean;
   updatedAt: string;
 }
 
@@ -162,7 +161,6 @@ interface MapImageInViewRow {
   width: number;
   height: number;
   corners: Corners;
-  can_edit: boolean;
   updated_at: string;
 }
 
@@ -180,7 +178,6 @@ export async function mapImagesInBbox(bbox: Bbox, signal?: AbortSignal): Promise
     width: row.width,
     height: row.height,
     corners: row.corners,
-    canEdit: row.can_edit,
     updatedAt: row.updated_at,
   }));
 }
