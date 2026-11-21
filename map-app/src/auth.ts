@@ -237,8 +237,8 @@ export async function getOrganisationDetails(organisationId: string): Promise<Or
 }
 
 /**
- * Creates an invite and returns its ID. Neon Auth may also email it; the
- * inviter can always copy the link from inviteLink() and send it themselves.
+ * Creates an invite and returns its ID. Neon Auth's invitation email is turned
+ * off, so the inviter copies a message with inviteLink() and sends it themselves.
  */
 export async function createInvite(organisationId: string, email: string, role: 'admin' | 'member'): Promise<string> {
   const invite = unwrap(await client.organization.inviteMember({ organizationId: organisationId, email, role }));

@@ -46,6 +46,9 @@ Things the survey map code assumes but that couldn't be confirmed while building
   - A new invite shows "expires" about 30 days out in the Organisations panel, and an invite older than 48 hours can still be accepted.
   - The trigger is still there after Neon updates Neon Auth.
 - [ ] **The invite link** `https://earthlingslearning.co.uk/map/?invite=<id>` opens the app, and the `?invite=` part is removed from the address bar after accepting, declining or closing.
+- [ ] **Neon Auth's invitation email stays off** (turned off in the Neon console on 2026-11-21) and creating an invite still works with it off.
+- [ ] **The copied invite message keeps its line breaks** when pasted into WhatsApp and into an email.
+- [ ] **The invite message appears right after "Create invite link"**. It waits for the pending invites list to reload so it can show the expiry date; if the new invite isn't in that list, no message shows.
 
 ## Data API client (`map-app/src/pinsApi.ts`)
 

@@ -414,13 +414,20 @@ body {
   overflow-wrap: anywhere;
 }
 
-.copy-link {
+.copy-text {
   display: flex;
   gap: 0.4rem;
   width: 100%;
 }
 
-.copy-link input {
+/* Multi-line messages: the box takes the full width, with Copy underneath. */
+.copy-text--multiline {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.copy-text input,
+.copy-text textarea {
   flex: 1;
   min-width: 0;
   font: inherit;
@@ -429,6 +436,13 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: #ffffff;
+}
+
+.copy-text textarea {
+  box-sizing: border-box;
+  width: 100%;
+  resize: vertical;
+  line-height: 1.4;
 }
 
 .invite-created {

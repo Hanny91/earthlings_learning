@@ -7,18 +7,41 @@ import {
   leaveOrganisation,
   removeMember,
   updateMemberRole,
+  type OrgInvite,
   type OrganisationDetails,
 } from '../auth';
 import { errorMessage } from '../errors';
 import { useAuth } from '../hooks/useAuth';
 import { useOrganisations } from '../hooks/useOrganisations';
 import { ROLE_LABELS } from '../roles';
-import { CopyLink } from './CopyLink';
+import { CopyText } from './CopyText';
 import { Dialog } from './Dialog';
 import { useNotice } from './Notices';
 import { OrganisationPhotos, type PhotoToAlign } from './OrganisationPhotos';
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const messageDateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+function withArticle(word: string): string {
+  return `${/^[aeiou]/.test(word) ? 'an' : 'a'} ${word}`;
+}
+
+/**
+ * The message an inviter copies and sends by hand (email, WhatsApp). Neon
+ * Auth's own invitation email is turned off, so this is the only invite
+ * people get. The steps match the button names in AcceptInviteDialog.
+ */
+function inviteMessage(organisationName: string, invite: OrgInvite): string {
+  return [
+    `You’ve been invited to join ${organisationName} on the Earthlings Learning map as ${withArticle(ROLE_LABELS[invite.role].toLowerCase())}.`,
+    '',
+    `1. Open this link: ${inviteLink(invite.id)}`,
+    `2. Sign in, or create an account, using ${invite.email}. The invite only works with this email address.`,
+    `3. Choose “Join ${organisationName}”.`,
+    '',
+    `The invite expires on ${messageDateFormat.format(new Date(invite.expiresAt))}.`,
+  ].join('\n');
+}
 
 interface OrganisationsDialogProps {
   onClose: () => void;
@@ -191,7 +214,7 @@ function OrganisationDetail({ organisationId, onBack, onAlignPhoto }: Organisati
                     <p className="invite-list__summary">
                       {invite.email} · {ROLE_LABELS[invite.role]} · expires {dateFormat.format(new Date(invite.expiresAt))}
                     </p>
-                    <CopyLink url={inviteLink(invite.id)} />
+                    <CopyText text={inviteMessage(details.name, invite)} label="Invite message" />
                     <button
                       type="button"
                       className="link-button"
@@ -205,7 +228,12 @@ function OrganisationDetail({ organisationId, onBack, onAlignPhoto }: Organisati
             )}
           </section>
 
-          <InviteForm organisationId={details.id} onInvited={load} />
+          <InviteForm
+            organisationId={details.id}
+            organisationName={details.name}
+            invites={details.invites}
+            onInvited={load}
+          />
 
           <OrganisationPhotos organisationId={details.id} onAlign={onAlignPhoto} />
         </>
@@ -235,21 +263,29 @@ function OrganisationDetail({ organisationId, onBack, onAlignPhoto }: Organisati
   );
 }
 
-function InviteForm({ organisationId, onInvited }: { organisationId: string; onInvited: () => Promise<void> }) {
+interface InviteFormProps {
+  organisationId: string;
+  organisationName: string;
+  /** Pending invites, used to show the new invite's message once the list has reloaded. */
+  invites: OrgInvite[];
+  onInvited: () => Promise<void>;
+}
+
+function InviteForm({ organisationId, organisationName, invites, onInvited }: InviteFormProps) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'admin' | 'member'>('member');
-  const [link, setLink] = useState('');
+  const [createdId, setCreatedId] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError('');
-    setLink('');
+    setCreatedId('');
     setBusy(true);
     try {
       const inviteId = await createInvite(organisationId, email.trim(), role);
-      setLink(inviteLink(inviteId));
+      setCreatedId(inviteId);
       setEmail('');
       await onInvited();
     } catch (err) {
@@ -258,6 +294,9 @@ function InviteForm({ organisationId, onInvited }: { organisationId: string; onI
       setBusy(false);
     }
   }
+
+  // The new invite's expiry date only arrives with the reloaded list.
+  const created = invites.find((invite) => invite.id === createdId);
 
   return (
     <section>
@@ -282,10 +321,10 @@ function InviteForm({ organisationId, onInvited }: { organisationId: string; onI
           </button>
         </div>
       </form>
-      {link && (
+      {created && (
         <div className="invite-created">
-          <p>Invite created. You can also send them this link yourself, in case the email doesn’t arrive:</p>
-          <CopyLink url={link} />
+          <p>Invite created. Copy this message and send it to them yourself, by email or WhatsApp for example:</p>
+          <CopyText text={inviteMessage(organisationName, created)} label="Invite message" />
         </div>
       )}
     </section>
